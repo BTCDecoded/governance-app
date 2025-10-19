@@ -1,0 +1,19 @@
+[server]
+host = "0.0.0.0"
+port = 3000
+
+[github]
+api_url = "https://api.github.com"
+governance_repo = "BTCDecoded/governance"
+governance_branch = "main"
+
+[database]
+max_connections = 10
+min_connections = 2
+
+[cache]
+governance_refresh_seconds = 300
+
+
+
+

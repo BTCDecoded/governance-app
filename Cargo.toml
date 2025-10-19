@@ -1,0 +1,56 @@
+[package]
+name = "governance-app"
+version = "0.1.0"
+edition = "2021"
+authors = ["BTCDecoded Contributors"]
+license = "MIT"
+description = "GitHub App for cryptographic governance enforcement across BTCDecoded repositories"
+repository = "https://github.com/BTCDecoded/governance-app"
+
+[dependencies]
+# Web framework
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace"] }
+
+# GitHub API
+octocrab = "0.38"
+
+# Database
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-rustls", "chrono", "json"] }
+
+# Cryptography (Bitcoin-compatible)
+secp256k1 = { version = "0.28", features = ["rand"] }
+bitcoin = "0.31"
+sha2 = "0.10"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+toml = "0.8"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Configuration
+config = "0.14"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Glob patterns
+glob = "0.3"
+
+
+
+
