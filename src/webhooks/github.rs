@@ -6,12 +6,12 @@ use axum::{
 use serde_json::Value;
 use tracing::{info, warn};
 
-use crate::webhooks::{pull_request, review, comment, push};
+use crate::webhooks::{pull_request, review, comment};
 
 pub async fn handle_webhook(
-    State((config, database)): State<(crate::config::AppConfig, crate::database::Database)>,
+    State((_config, database)): State<(crate::config::AppConfig, crate::database::Database)>,
     Json(payload): Json<Value>,
-) -> Result<Json<Value>, StatusCode> {
+) -> (StatusCode, Json<Value>) {
     let event_type = payload
         .get("action")
         .and_then(|v| v.as_str())
@@ -26,17 +26,26 @@ pub async fn handle_webhook(
 
     match event_name {
         "opened" | "synchronize" | "reopened" => {
-            pull_request::handle_pull_request_event(&database, &payload).await
+            match pull_request::handle_pull_request_event(&database, &payload).await {
+                Ok(response) => (StatusCode::OK, response),
+                Err(status) => (status, Json(serde_json::json!({"error": "failed"})))
+            }
         }
         "submitted" => {
-            review::handle_review_event(&database, &payload).await
+            match review::handle_review_event(&database, &payload).await {
+                Ok(response) => (StatusCode::OK, response),
+                Err(status) => (status, Json(serde_json::json!({"error": "failed"})))
+            }
         }
         "created" => {
-            comment::handle_comment_event(&database, &payload).await
+            match comment::handle_comment_event(&database, &payload).await {
+                Ok(response) => (StatusCode::OK, response),
+                Err(status) => (status, Json(serde_json::json!({"error": "failed"})))
+            }
         }
         _ => {
             warn!("Unhandled webhook event: {}", event_name);
-            Ok(Json(serde_json::json!({"status": "ignored"})))
+            (StatusCode::OK, Json(serde_json::json!({"status": "ignored"})))
         }
     }
 }

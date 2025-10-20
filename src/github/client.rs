@@ -11,7 +11,8 @@ impl GitHubClient {
             .map_err(|e| GovernanceError::ConfigError(format!("Failed to read private key: {}", e)))?;
 
         let client = Octocrab::builder()
-            .app(app_id.into(), key.into())
+            .app(app_id.into(), jsonwebtoken::EncodingKey::from_rsa_pem(key.as_bytes())
+                .map_err(|e| GovernanceError::GitHubError(format!("Failed to parse private key: {}", e)))?)
             .build()
             .map_err(|e| GovernanceError::GitHubError(format!("Failed to create GitHub client: {}", e)))?;
 
@@ -20,12 +21,12 @@ impl GitHubClient {
 
     pub async fn post_status_check(
         &self,
-        owner: &str,
-        repo: &str,
-        sha: &str,
-        state: &str,
-        description: &str,
-        context: &str,
+        _owner: &str,
+        _repo: &str,
+        _sha: &str,
+        _state: &str,
+        _description: &str,
+        _context: &str,
     ) -> Result<(), GovernanceError> {
         // This would post a status check to GitHub
         // Implementation depends on specific GitHub API requirements
@@ -34,8 +35,8 @@ impl GitHubClient {
 
     pub async fn get_repository_info(
         &self,
-        owner: &str,
-        repo: &str,
+        _owner: &str,
+        _repo: &str,
     ) -> Result<serde_json::Value, GovernanceError> {
         // This would fetch repository information
         // Implementation depends on specific GitHub API requirements

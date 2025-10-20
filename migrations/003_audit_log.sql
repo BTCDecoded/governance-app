@@ -1,12 +1,12 @@
 -- Audit log (immutable record)
 CREATE TABLE governance_events (
-  id SERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_type TEXT NOT NULL,
   repo_name TEXT,
   pr_number INTEGER,
   maintainer TEXT,
-  details JSONB,
-  timestamp TIMESTAMP DEFAULT NOW()
+  details TEXT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for audit log queries

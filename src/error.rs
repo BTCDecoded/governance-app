@@ -80,8 +80,8 @@ impl GovernanceError {
         Self::insufficient_evidence(length)
     }
 
-    pub fn InsufficientSignatures { required, found, threshold }: InsufficientSignaturesArgs -> Self {
-        Self::insufficient_signatures(required, found, threshold)
+    pub fn InsufficientSignatures(args: InsufficientSignaturesArgs) -> Self {
+        Self::insufficient_signatures(args.required, args.found, args.threshold)
     }
 
     pub fn InvalidSignature(msg: String) -> Self {
@@ -92,8 +92,8 @@ impl GovernanceError {
         Self::extension_not_allowed(tier)
     }
 
-    pub fn MaxExtensionsReached { current, max }: MaxExtensionsReachedArgs -> Self {
-        Self::max_extensions_reached(current, max)
+    pub fn MaxExtensionsReached(args: MaxExtensionsReachedArgs) -> Self {
+        Self::max_extensions_reached(args.current, args.max)
     }
 
     pub fn EmergencyExpired(id: i32) -> Self {

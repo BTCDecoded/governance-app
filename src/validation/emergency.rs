@@ -7,6 +7,7 @@
 
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
+use crate::error::{InsufficientSignaturesArgs, MaxExtensionsReachedArgs};
 
 use crate::error::GovernanceAppError;
 
@@ -240,11 +241,11 @@ impl EmergencyValidator {
         // Check signature count meets activation threshold
         let (required, total) = activation.tier.activation_threshold();
         if activation.signatures.len() < required as usize {
-            return Err(GovernanceAppError::InsufficientSignatures {
+            return Err(GovernanceAppError::InsufficientSignatures(InsufficientSignaturesArgs {
                 required: required as usize,
                 found: activation.signatures.len(),
                 threshold: format!("{}-of-{}", required, total),
-            });
+            }));
         }
 
         // Validate individual signatures
@@ -258,7 +259,7 @@ impl EmergencyValidator {
     /// Validate individual keyholder signature
     fn validate_keyholder_signature(
         sig: &KeyholderSignature,
-        activation: &EmergencyActivation,
+        _activation: &EmergencyActivation,
     ) -> Result<(), GovernanceAppError> {
         // TODO: Implement actual cryptographic verification using developer-sdk
         // For now, just basic validation
@@ -298,10 +299,10 @@ impl EmergencyValidator {
 
         // Check extension count
         if emergency.extension_count >= emergency.tier.max_extensions() {
-            return Err(GovernanceAppError::MaxExtensionsReached {
+            return Err(GovernanceAppError::MaxExtensionsReached(MaxExtensionsReachedArgs {
                 current: emergency.extension_count,
                 max: emergency.tier.max_extensions(),
-            });
+            }));
         }
 
         // Check if already expired
@@ -312,11 +313,11 @@ impl EmergencyValidator {
         // Check signature count meets extension threshold
         let (required, total) = emergency.tier.extension_threshold();
         if signatures.len() < required as usize {
-            return Err(GovernanceAppError::InsufficientSignatures {
+            return Err(GovernanceAppError::InsufficientSignatures(InsufficientSignaturesArgs {
                 required: required as usize,
                 found: signatures.len(),
                 threshold: format!("{}-of-{}", required, total),
-            });
+            }));
         }
 
         Ok(())

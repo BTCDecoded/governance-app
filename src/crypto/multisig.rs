@@ -31,7 +31,7 @@ impl MultisigManager {
                     .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key for {}: {}", signer, e)))?;
 
                 // Parse signature
-                let sig = signature.parse::<secp256k1::Signature>()
+                let sig = signature.parse::<secp256k1::ecdsa::Signature>()
                     .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature from {}: {}", signer, e)))?;
 
                 // Verify signature
@@ -68,7 +68,7 @@ impl MultisigManager {
                 let public_key = public_key_str.parse::<secp256k1::PublicKey>()
                     .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key for {}: {}", signer, e)))?;
 
-                let sig = signature.parse::<secp256k1::Signature>()
+                let sig = signature.parse::<secp256k1::ecdsa::Signature>()
                     .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature from {}: {}", signer, e)))?;
 
                 if self.signature_manager.verify_signature(message, &sig, &public_key)? {

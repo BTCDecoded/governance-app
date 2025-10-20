@@ -1,5 +1,6 @@
-use secp256k1::{PublicKey, Secp256k1, Signature};
+use secp256k1::{PublicKey, Secp256k1, ecdsa::Signature};
 use sha2::{Digest, Sha256};
+use std::str::FromStr;
 use crate::error::GovernanceError;
 
 pub struct SignatureValidator {
@@ -29,7 +30,7 @@ impl SignatureValidator {
 
         // Hash message
         let message_hash = Sha256::digest(message.as_bytes());
-        let message_hash = secp256k1::Message::from_slice(&message_hash)
+        let message_hash = secp256k1::Message::from_digest_slice(&message_hash)
             .map_err(|e| GovernanceError::CryptoError(format!("Invalid message hash: {}", e)))?;
 
         // Verify signature
@@ -45,7 +46,7 @@ impl SignatureValidator {
         required_threshold: (usize, usize), // (required, total)
         maintainer_keys: &std::collections::HashMap<String, String>, // username -> public_key
     ) -> Result<bool, GovernanceError> {
-        let (required, total) = required_threshold;
+        let (required, _total) = required_threshold;
         let mut valid_signatures = 0;
 
         for (signer, signature) in signatures {

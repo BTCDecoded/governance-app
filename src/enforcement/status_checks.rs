@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
-use crate::validation::{ReviewPeriodValidator, ThresholdValidator};
+use crate::validation::review_period::ReviewPeriodValidator;
+use crate::validation::threshold::ThresholdValidator;
 use crate::validation::emergency::{EmergencyTier, ActiveEmergency};
 
 pub struct StatusCheckGenerator;

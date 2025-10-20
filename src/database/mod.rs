@@ -2,35 +2,28 @@ pub mod models;
 pub mod queries;
 pub mod schema;
 
-use sqlx::{PgPool, Row};
-use std::collections::HashMap;
+use sqlx::SqlitePool;
 
+#[derive(Clone)]
 pub struct Database {
-    pool: PgPool,
+    pool: SqlitePool,
 }
 
 impl Database {
     pub async fn new(database_url: &str) -> Result<Self, sqlx::Error> {
-        let pool = PgPool::connect(database_url).await?;
+        let pool = SqlitePool::connect(database_url).await?;
         Ok(Database { pool })
     }
 
+    pub async fn new_in_memory() -> Result<Self, sqlx::Error> {
+        let pool = SqlitePool::connect("sqlite::memory:").await?;
+        let db = Database { pool };
+        db.run_migrations().await?;
+        Ok(db)
+    }
+
     pub async fn run_migrations(&self) -> Result<(), sqlx::Error> {
-        // Run initial schema migration
-        sqlx::query(include_str!("../migrations/001_initial_schema.sql"))
-            .execute(&self.pool)
-            .await?;
-        
-        // Run emergency mode migration
-        sqlx::query(include_str!("../migrations/002_emergency_mode.sql"))
-            .execute(&self.pool)
-            .await?;
-        
-        // Run audit log migration
-        sqlx::query(include_str!("../migrations/003_audit_log.sql"))
-            .execute(&self.pool)
-            .await?;
-        
+        sqlx::migrate!("./migrations").run(&self.pool).await?;
         Ok(())
     }
 
@@ -41,19 +34,19 @@ impl Database {
         head_sha: &str,
         layer: i32,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             INSERT INTO pull_requests (repo_name, pr_number, opened_at, layer, head_sha)
-            VALUES ($1, $2, NOW(), $3, $4)
+            VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?)
             ON CONFLICT (repo_name, pr_number) DO UPDATE SET
                 head_sha = EXCLUDED.head_sha,
-                updated_at = NOW()
-            "#,
-            repo_name,
-            pr_number,
-            layer,
-            head_sha
+                updated_at = CURRENT_TIMESTAMP
+            "#
         )
+        .bind(repo_name)
+        .bind(pr_number)
+        .bind(layer)
+        .bind(head_sha)
         .execute(&self.pool)
         .await?;
         
@@ -62,10 +55,10 @@ impl Database {
 
     pub async fn update_review_status(
         &self,
-        repo_name: &str,
-        pr_number: i32,
-        reviewer: &str,
-        state: &str,
+        _repo_name: &str,
+        _pr_number: i32,
+        _reviewer: &str,
+        _state: &str,
     ) -> Result<(), sqlx::Error> {
         // This would update review status in the database
         // Implementation depends on specific review tracking requirements
@@ -74,10 +67,10 @@ impl Database {
 
     pub async fn add_signature(
         &self,
-        repo_name: &str,
-        pr_number: i32,
-        signer: &str,
-        signature: &str,
+        _repo_name: &str,
+        _pr_number: i32,
+        _signer: &str,
+        _signature: &str,
     ) -> Result<(), sqlx::Error> {
         // Add signature to the pull request
         // This would involve updating the signatures JSONB field
@@ -92,21 +85,40 @@ impl Database {
         maintainer: Option<&str>,
         details: &serde_json::Value,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             INSERT INTO governance_events (event_type, repo_name, pr_number, maintainer, details)
-            VALUES ($1, $2, $3, $4, $5)
-            "#,
-            event_type,
-            repo_name,
-            pr_number,
-            maintainer,
-            details
+            VALUES (?, ?, ?, ?, ?)
+            "#
         )
+        .bind(event_type)
+        .bind(repo_name)
+        .bind(pr_number)
+        .bind(maintainer)
+        .bind(serde_json::to_string(details).unwrap_or_default())
         .execute(&self.pool)
         .await?;
         
         Ok(())
+    }
+
+    pub async fn get_pull_request(
+        &self,
+        _repo_name: &str,
+        _pr_number: i32,
+    ) -> Result<Option<crate::database::models::PullRequest>, sqlx::Error> {
+        // This would retrieve a pull request from the database
+        // For now, return None as a placeholder
+        Ok(None)
+    }
+
+    pub async fn get_governance_events(
+        &self,
+        _limit: i64,
+    ) -> Result<Vec<crate::database::models::GovernanceEvent>, sqlx::Error> {
+        // This would retrieve governance events from the database
+        // For now, return empty vector as a placeholder
+        Ok(vec![])
     }
 }
 

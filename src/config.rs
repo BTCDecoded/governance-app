@@ -15,7 +15,7 @@ pub struct AppConfig {
 impl AppConfig {
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "postgresql://user:pass@localhost/governance".to_string());
+            .unwrap_or_else(|_| "sqlite://governance.db".to_string());
         
         let github_app_id = env::var("GITHUB_APP_ID")
             .unwrap_or_else(|_| "123456".to_string())

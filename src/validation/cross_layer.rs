@@ -48,9 +48,9 @@ impl CrossLayerValidator {
     }
 
     fn validate_dependency(
-        target_repo: &str,
+        _target_repo: &str,
         validation_type: &str,
-        rule: &Value,
+        _rule: &Value,
     ) -> Result<(), GovernanceError> {
         match validation_type {
             "corresponding_file_exists" => {

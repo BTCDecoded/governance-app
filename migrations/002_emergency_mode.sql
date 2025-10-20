@@ -1,14 +1,14 @@
 -- Emergency mode state (app state)
 CREATE TABLE emergency_activations (
-  id SERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   activated_by TEXT NOT NULL,
   reason TEXT NOT NULL,
   evidence TEXT NOT NULL,
-  signatures JSONB DEFAULT '[]',
+  signatures TEXT DEFAULT '[]',
   activated_at TIMESTAMP,
   expires_at TIMESTAMP,
   active BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for emergency mode queries
