@@ -1,5 +1,5 @@
-use serde_json::Value;
 use crate::error::GovernanceError;
+use serde_json::Value;
 
 pub struct WebhookProcessor;
 
@@ -41,7 +41,3 @@ pub struct WebhookEvent {
     pub action: String,
     pub payload: Value,
 }
-
-
-
-

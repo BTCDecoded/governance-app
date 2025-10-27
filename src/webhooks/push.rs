@@ -28,23 +28,31 @@ pub async fn handle_push_event(
 
     // Check if this is a direct push to main/master (potential bypass attempt)
     if ref_name == "refs/heads/main" || ref_name == "refs/heads/master" {
-        warn!("Direct push to {} detected - potential governance bypass!", ref_name);
-        
+        warn!(
+            "Direct push to {} detected - potential governance bypass!",
+            ref_name
+        );
+
         // Log the bypass attempt
-        match database.log_governance_event(
-            "direct_push_detected",
-            Some(repo_name),
-            None,
-            Some(pusher),
-            &serde_json::json!({
-                "ref": ref_name,
-                "pusher": pusher,
-                "timestamp": chrono::Utc::now()
-            })
-        ).await {
+        match database
+            .log_governance_event(
+                "direct_push_detected",
+                Some(repo_name),
+                None,
+                Some(pusher),
+                &serde_json::json!({
+                    "ref": ref_name,
+                    "pusher": pusher,
+                    "timestamp": chrono::Utc::now()
+                }),
+            )
+            .await
+        {
             Ok(_) => {
                 info!("Bypass attempt logged for {}", repo_name);
-                Ok(axum::response::Json(serde_json::json!({"status": "bypass_logged"})))
+                Ok(axum::response::Json(
+                    serde_json::json!({"status": "bypass_logged"}),
+                ))
             }
             Err(e) => {
                 warn!("Failed to log bypass attempt: {}", e);
@@ -53,10 +61,8 @@ pub async fn handle_push_event(
         }
     } else {
         info!("Regular push to {}, ignoring", ref_name);
-        Ok(axum::response::Json(serde_json::json!({"status": "ignored"})))
+        Ok(axum::response::Json(
+            serde_json::json!({"status": "ignored"}),
+        ))
     }
 }
-
-
-
-

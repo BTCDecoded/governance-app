@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::crypto::signatures::SignatureManager;
 use crate::error::GovernanceError;
+use std::collections::HashMap;
 
 pub struct MultisigManager {
     signature_manager: SignatureManager,
@@ -16,9 +16,9 @@ impl MultisigManager {
     pub fn verify_multisig(
         &self,
         message: &str,
-        signatures: &[(String, String)], // (signer, signature)
+        signatures: &[(String, String)],       // (signer, signature)
         public_keys: &HashMap<String, String>, // username -> public_key
-        required_threshold: (usize, usize), // (required, total)
+        required_threshold: (usize, usize),    // (required, total)
     ) -> Result<bool, GovernanceError> {
         let (required, total) = required_threshold;
         let mut valid_signatures = 0;
@@ -27,15 +27,30 @@ impl MultisigManager {
         for (signer, signature) in signatures {
             if let Some(public_key_str) = public_keys.get(signer) {
                 // Parse public key
-                let public_key = public_key_str.parse::<secp256k1::PublicKey>()
-                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key for {}: {}", signer, e)))?;
+                let public_key = public_key_str
+                    .parse::<secp256k1::PublicKey>()
+                    .map_err(|e| {
+                        GovernanceError::CryptoError(format!(
+                            "Invalid public key for {}: {}",
+                            signer, e
+                        ))
+                    })?;
 
                 // Parse signature
-                let sig = signature.parse::<secp256k1::ecdsa::Signature>()
-                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature from {}: {}", signer, e)))?;
+                let sig = signature
+                    .parse::<secp256k1::ecdsa::Signature>()
+                    .map_err(|e| {
+                        GovernanceError::CryptoError(format!(
+                            "Invalid signature from {}: {}",
+                            signer, e
+                        ))
+                    })?;
 
                 // Verify signature
-                if self.signature_manager.verify_signature(message, &sig, &public_key)? {
+                if self
+                    .signature_manager
+                    .verify_signature(message, &sig, &public_key)?
+                {
                     valid_signatures += 1;
                     verified_signers.push(signer.clone());
                 }
@@ -65,13 +80,28 @@ impl MultisigManager {
 
         for (signer, signature) in signatures {
             if let Some(public_key_str) = public_keys.get(signer) {
-                let public_key = public_key_str.parse::<secp256k1::PublicKey>()
-                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key for {}: {}", signer, e)))?;
+                let public_key = public_key_str
+                    .parse::<secp256k1::PublicKey>()
+                    .map_err(|e| {
+                        GovernanceError::CryptoError(format!(
+                            "Invalid public key for {}: {}",
+                            signer, e
+                        ))
+                    })?;
 
-                let sig = signature.parse::<secp256k1::ecdsa::Signature>()
-                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature from {}: {}", signer, e)))?;
+                let sig = signature
+                    .parse::<secp256k1::ecdsa::Signature>()
+                    .map_err(|e| {
+                        GovernanceError::CryptoError(format!(
+                            "Invalid signature from {}: {}",
+                            signer, e
+                        ))
+                    })?;
 
-                if self.signature_manager.verify_signature(message, &sig, &public_key)? {
+                if self
+                    .signature_manager
+                    .verify_signature(message, &sig, &public_key)?
+                {
                     verified_signers.push(signer.clone());
                 }
             }
@@ -86,7 +116,3 @@ impl Default for MultisigManager {
         Self::new()
     }
 }
-
-
-
-

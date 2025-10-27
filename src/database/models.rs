@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PullRequest {
@@ -53,7 +53,3 @@ pub struct GovernanceEvent {
     pub details: serde_json::Value,
     pub timestamp: DateTime<Utc>,
 }
-
-
-
-

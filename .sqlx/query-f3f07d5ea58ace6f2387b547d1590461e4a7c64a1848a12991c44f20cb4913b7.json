@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                    SELECT \n                        0 as shared_buffers,\n                        0 as effective_cache_size,\n                        1 as active_connections\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "name": "shared_buffers",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "effective_cache_size",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "active_connections",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f3f07d5ea58ace6f2387b547d1590461e4a7c64a1848a12991c44f20cb4913b7"
+}

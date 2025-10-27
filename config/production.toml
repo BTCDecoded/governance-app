@@ -1,0 +1,251 @@
+# BTCDecoded Governance App - Production Configuration
+
+[app]
+name = "governance-app"
+version = "0.1.0"
+environment = "production"
+log_level = "info"
+
+[database]
+url = "sqlite:///opt/governance-app/data/governance.db"
+max_connections = 10
+min_connections = 1
+acquire_timeout_seconds = 30
+idle_timeout_seconds = 600
+max_lifetime_seconds = 1800
+
+[sqlite]
+journal_mode = "wal"
+synchronous = "normal"
+locking_mode = "normal"
+cache_size = 10000
+temp_store = "memory"
+foreign_keys = true
+
+[github]
+app_id = 12345
+private_key_path = "/opt/governance-app/keys/app-private-key.pem"
+webhook_secret = "your-webhook-secret-here"
+base_url = "https://api.github.com"
+
+[backup]
+enabled = true
+directory = "/opt/governance-app/backups"
+retention_days = 30
+compression = true
+schedule = "0 2 * * *"  # Daily at 2 AM
+
+[monitoring]
+health_check_interval_seconds = 60
+performance_stats_interval_seconds = 300
+log_rotation_days = 30
+
+[security]
+# Key management settings
+key_rotation_days = 365
+signature_timeout_seconds = 300
+max_signature_attempts = 3
+
+# Rate limiting
+max_requests_per_minute = 100
+max_webhook_requests_per_minute = 50
+
+[governance]
+# Tier configuration
+tier_1_signatures_required = 3
+tier_1_signatures_total = 5
+tier_1_review_period_days = 7
+
+tier_2_signatures_required = 4
+tier_2_signatures_total = 5
+tier_2_review_period_days = 30
+
+tier_3_signatures_required = 5
+tier_3_signatures_total = 5
+tier_3_review_period_days = 90
+
+tier_4_signatures_required = 4
+tier_4_signatures_total = 5
+tier_4_review_period_days = 0  # Emergency
+
+tier_5_signatures_required = 5
+tier_5_signatures_total = 5
+tier_5_review_period_days = 180
+
+# Economic node veto thresholds
+mining_veto_threshold_percent = 30.0
+economic_veto_threshold_percent = 40.0
+
+[repositories]
+# Repository layer mapping
+orange_paper = 1
+consensus_proof = 2
+protocol_engine = 3
+reference_node = 4
+developer_sdk = 5
+
+[maintainers]
+# Layer 1-2 (Constitutional)
+layer_1_2 = [
+    "maintainer1@example.com",
+    "maintainer2@example.com",
+    "maintainer3@example.com",
+    "maintainer4@example.com",
+    "maintainer5@example.com",
+    "maintainer6@example.com",
+    "maintainer7@example.com"
+]
+
+# Layer 3 (Implementation)
+layer_3 = [
+    "maintainer1@example.com",
+    "maintainer2@example.com",
+    "maintainer3@example.com",
+    "maintainer4@example.com",
+    "maintainer5@example.com"
+]
+
+# Layer 4 (Application)
+layer_4 = [
+    "maintainer1@example.com",
+    "maintainer2@example.com",
+    "maintainer3@example.com",
+    "maintainer4@example.com",
+    "maintainer5@example.com"
+]
+
+# Layer 5 (Extension)
+layer_5 = [
+    "maintainer1@example.com",
+    "maintainer2@example.com",
+    "maintainer3@example.com"
+]
+
+# Emergency keyholders
+emergency = [
+    "emergency1@example.com",
+    "emergency2@example.com",
+    "emergency3@example.com",
+    "emergency4@example.com",
+    "emergency5@example.com"
+]
+
+[economic_nodes]
+# Economic node qualification thresholds
+mining_pool_min_hashpower_percent = 1.0
+exchange_min_holdings_btc = 1000.0
+exchange_min_volume_usd = 10000000.0
+custodian_min_holdings_btc = 5000.0
+
+# Veto thresholds
+mining_veto_threshold_percent = 30.0
+economic_veto_threshold_percent = 40.0
+
+[governance_fork]
+# Fork capability settings
+export_enabled = true
+versioning_enabled = true
+adoption_tracking_enabled = true
+dashboard_enabled = true
+
+# Export settings
+export_directory = "/opt/governance-app/exports"
+export_retention_days = 90
+export_compression = true
+
+[logging]
+# Logging configuration
+level = "info"
+format = "json"
+output = "file"
+file_path = "/opt/governance-app/logs/governance-app.log"
+max_file_size_mb = 100
+max_files = 10
+
+# Structured logging fields
+service_name = "governance-app"
+service_version = "0.1.0"
+environment = "production"
+
+[metrics]
+# Metrics collection
+enabled = true
+port = 9090
+path = "/metrics"
+
+# Prometheus metrics
+prometheus_enabled = true
+prometheus_endpoint = "/metrics"
+
+# Custom metrics
+database_connections = true
+request_duration = true
+error_rate = true
+signature_verification_time = true
+
+[alerts]
+# Alerting configuration
+enabled = true
+webhook_url = "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+
+# Alert thresholds
+database_connection_failure_threshold = 3
+signature_verification_failure_threshold = 5
+webhook_processing_failure_threshold = 10
+backup_failure_threshold = 1
+
+# Alert channels
+email = ["admin@btcdecoded.org"]
+slack = ["#governance-alerts"]
+pagerduty = "your-pagerduty-key"
+
+[deployment]
+# Deployment configuration
+region = "us-west-2"
+availability_zone = "us-west-2a"
+instance_type = "t3.medium"
+min_instances = 1
+max_instances = 3
+
+# Auto-scaling
+cpu_threshold_percent = 70
+memory_threshold_percent = 80
+scale_up_cooldown_seconds = 300
+scale_down_cooldown_seconds = 600
+
+# Health checks
+health_check_path = "/health"
+health_check_interval_seconds = 30
+health_check_timeout_seconds = 5
+unhealthy_threshold = 3
+healthy_threshold = 2
+
+[security_hardening]
+# Security hardening settings
+disable_http = true
+require_https = true
+hsts_max_age_seconds = 31536000
+cors_origins = ["https://btcdecoded.org"]
+cors_methods = ["GET", "POST", "PUT", "DELETE"]
+cors_headers = ["Content-Type", "Authorization"]
+
+# Rate limiting
+rate_limit_requests_per_minute = 100
+rate_limit_burst_size = 200
+rate_limit_window_seconds = 60
+
+# Input validation
+max_request_size_bytes = 1048576  # 1MB
+max_webhook_payload_size_bytes = 1048576  # 1MB
+max_signature_length = 1024
+max_public_key_length = 1024
+
+# Timeouts
+request_timeout_seconds = 30
+database_query_timeout_seconds = 10
+github_api_timeout_seconds = 15
+webhook_processing_timeout_seconds = 5
+
+
+
+

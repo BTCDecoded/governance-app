@@ -1,6 +1,10 @@
-use secp256k1::{PublicKey, Secp256k1, SecretKey, ecdsa::Signature};
-use sha2::{Digest, Sha256};
 use crate::error::GovernanceError;
+use developer_sdk::governance::{
+    signatures::sign_message, verify_signature, GovernanceKeypair,
+    PublicKey as GovernancePublicKey, Signature as GovernanceSignature,
+};
+use secp256k1::{ecdsa::Signature, PublicKey, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 pub struct SignatureManager {
     secp: Secp256k1<secp256k1::All>,
@@ -41,8 +45,61 @@ impl SignatureManager {
         }
     }
 
+    /// Verify signature using developer-sdk governance primitives
+    pub fn verify_governance_signature(
+        &self,
+        message: &str,
+        signature: &str,
+        public_key: &str,
+    ) -> Result<bool, GovernanceError> {
+        // Parse signature from hex string
+        let signature_bytes = hex::decode(signature)
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature hex: {}", e)))?;
+        let signature = GovernanceSignature::from_bytes(&signature_bytes).map_err(|e| {
+            GovernanceError::CryptoError(format!("Invalid signature format: {}", e))
+        })?;
+
+        // Parse public key from hex string
+        let public_key_bytes = hex::decode(public_key)
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key hex: {}", e)))?;
+        let public_key = GovernancePublicKey::from_bytes(&public_key_bytes).map_err(|e| {
+            GovernanceError::CryptoError(format!("Invalid public key format: {}", e))
+        })?;
+
+        // Use developer-sdk's verify_signature function
+        verify_signature(&signature, message.as_bytes(), &public_key).map_err(|e| {
+            GovernanceError::CryptoError(format!("Signature verification failed: {}", e))
+        })
+    }
+
+    /// Create signature using developer-sdk governance primitives
+    pub fn create_governance_signature(
+        &self,
+        message: &str,
+        keypair: &GovernanceKeypair,
+    ) -> Result<String, GovernanceError> {
+        // Use developer-sdk's sign_message function
+        let signature = sign_message(&keypair.secret_key, message.as_bytes()).map_err(|e| {
+            GovernanceError::CryptoError(format!("Signature creation failed: {}", e))
+        })?;
+
+        Ok(signature.to_string())
+    }
+
     pub fn public_key_from_secret(&self, secret_key: &SecretKey) -> PublicKey {
         PublicKey::from_secret_key(&self.secp, secret_key)
+    }
+
+    /// Generate a new keypair
+    pub fn generate_keypair(&self) -> Result<GovernanceKeypair, GovernanceError> {
+        use secp256k1::rand::rngs::OsRng;
+        let mut rng = OsRng;
+        let secret_key = SecretKey::new(&mut rng);
+        let public_key = PublicKey::from_secret_key(&self.secp, &secret_key);
+        Ok(GovernanceKeypair {
+            secret_key,
+            public_key,
+        })
     }
 }
 
@@ -51,7 +108,3 @@ impl Default for SignatureManager {
         Self::new()
     }
 }
-
-
-
-

@@ -32,13 +32,21 @@ pub async fn handle_review_event(
         .and_then(|s| s.as_str())
         .unwrap_or("unknown");
 
-    info!("Review {} by {} for PR #{} in {}", state, reviewer, pr_number, repo_name);
+    info!(
+        "Review {} by {} for PR #{} in {}",
+        state, reviewer, pr_number, repo_name
+    );
 
     // Update review status in database
-    match database.update_review_status(repo_name, pr_number as i32, reviewer, state).await {
+    match database
+        .update_review_status(repo_name, pr_number as i32, reviewer, state)
+        .await
+    {
         Ok(_) => {
             info!("Review status updated for PR #{}", pr_number);
-            Ok(axum::response::Json(serde_json::json!({"status": "updated"})))
+            Ok(axum::response::Json(
+                serde_json::json!({"status": "updated"}),
+            ))
         }
         Err(e) => {
             warn!("Failed to update review status: {}", e);
@@ -46,7 +54,3 @@ pub async fn handle_review_event(
         }
     }
 }
-
-
-
-

@@ -1,0 +1,67 @@
+# Testnet Configuration for Phase 2A
+# This configuration enables enforcement mode for testing with test keys
+
+[app]
+name = "governance-app-testnet"
+version = "0.1.0"
+environment = "testnet"
+
+[server]
+host = "0.0.0.0"
+port = 8080
+workers = 4
+
+[database]
+url = "sqlite:governance-app-testnet.db"
+max_connections = 10
+timeout_seconds = 30
+
+# Phase 2A: Enable enforcement mode (disable dry-run)
+[governance]
+dry_run_mode = false
+log_enforcement_decisions = true
+enforcement_log_path = "logs/enforcement-decisions.jsonl"
+
+[github]
+app_id = "123456"
+private_key_path = "keys/testnet-app-key.pem"
+webhook_secret = "testnet-webhook-secret"
+api_base_url = "https://api.github.com"
+
+[nostr]
+relays = [
+    "wss://relay.damus.io",
+    "wss://relay.snort.social"
+]
+private_key_path = "keys/testnet-nostr-key.pem"
+
+[ots]
+calendar_url = "https://calendar.opentimestamps.org"
+timeout_seconds = 30
+
+[audit_log]
+enabled = true
+log_path = "logs/audit.log"
+merkle_tree_depth = 20
+ots_anchor_interval_days = 30
+
+[server_authorization]
+enabled = true
+registry_path = "data/authorized_servers.json"
+verification_required = true
+
+[economic_nodes]
+enabled = true
+veto_threshold_percent = 30.0
+hash_rate_threshold_percent = 30.0
+economic_activity_threshold_percent = 40.0
+
+[governance_fork]
+enabled = true
+export_path = "data/governance-exports"
+adoption_tracking = true
+
+[monitoring]
+prometheus_enabled = true
+prometheus_port = 9090
+health_check_interval_seconds = 60

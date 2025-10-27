@@ -371,3 +371,14 @@ async fn test_emergency_extension_calculations() {
     assert!(!maxed_emergency.can_extend());
     assert!(maxed_emergency.calculate_extension_expiration().is_none());
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 //! - Tier 2 (Urgent): 7 day review, 5-of-7 signatures, 30 day max duration
 //! - Tier 3 (Elevated): 30 day review, 6-of-7 signatures, 90 day max duration
 
+use crate::error::{InsufficientSignaturesArgs, MaxExtensionsReachedArgs};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
-use crate::error::{InsufficientSignaturesArgs, MaxExtensionsReachedArgs};
 
 use crate::error::GovernanceAppError;
 
@@ -155,7 +155,9 @@ impl EmergencyTier {
     /// Get tier description
     pub fn description(&self) -> &'static str {
         match self {
-            EmergencyTier::Critical => "Network-threatening vulnerability requiring immediate action",
+            EmergencyTier::Critical => {
+                "Network-threatening vulnerability requiring immediate action"
+            }
             EmergencyTier::Urgent => "Serious security issue requiring urgent response",
             EmergencyTier::Elevated => "Important priority requiring accelerated review",
         }
@@ -207,7 +209,7 @@ impl ActiveEmergency {
 
     /// Check if extension is allowed
     pub fn can_extend(&self) -> bool {
-        self.tier.allows_extensions() 
+        self.tier.allows_extensions()
             && self.extension_count < self.tier.max_extensions()
             && !self.is_expired()
     }
@@ -217,9 +219,9 @@ impl ActiveEmergency {
         if !self.can_extend() {
             return None;
         }
-        
+
         let extension_days = self.tier.extension_duration_days() as i64;
-        Some(self.expires_at + Duration::days(extension_days))
+        Some(self.expires_at + Duration::try_days(extension_days).unwrap_or_default())
     }
 }
 
@@ -228,9 +230,7 @@ pub struct EmergencyValidator;
 
 impl EmergencyValidator {
     /// Validate emergency activation request
-    pub fn validate_activation(
-        activation: &EmergencyActivation,
-    ) -> Result<(), GovernanceAppError> {
+    pub fn validate_activation(activation: &EmergencyActivation) -> Result<(), GovernanceAppError> {
         // Check minimum evidence length
         if activation.evidence.len() < 100 {
             return Err(GovernanceAppError::InsufficientEvidence(
@@ -241,11 +241,13 @@ impl EmergencyValidator {
         // Check signature count meets activation threshold
         let (required, total) = activation.tier.activation_threshold();
         if activation.signatures.len() < required as usize {
-            return Err(GovernanceAppError::InsufficientSignatures(InsufficientSignaturesArgs {
-                required: required as usize,
-                found: activation.signatures.len(),
-                threshold: format!("{}-of-{}", required, total),
-            }));
+            return Err(GovernanceAppError::InsufficientSignatures(
+                InsufficientSignaturesArgs {
+                    required: required as usize,
+                    found: activation.signatures.len(),
+                    threshold: format!("{}-of-{}", required, total),
+                },
+            ));
         }
 
         // Validate individual signatures
@@ -263,7 +265,7 @@ impl EmergencyValidator {
     ) -> Result<(), GovernanceAppError> {
         // TODO: Implement actual cryptographic verification using developer-sdk
         // For now, just basic validation
-        
+
         if sig.keyholder.is_empty() {
             return Err(GovernanceAppError::InvalidSignature(
                 "Empty keyholder name".to_string(),
@@ -299,10 +301,12 @@ impl EmergencyValidator {
 
         // Check extension count
         if emergency.extension_count >= emergency.tier.max_extensions() {
-            return Err(GovernanceAppError::MaxExtensionsReached(MaxExtensionsReachedArgs {
-                current: emergency.extension_count,
-                max: emergency.tier.max_extensions(),
-            }));
+            return Err(GovernanceAppError::MaxExtensionsReached(
+                MaxExtensionsReachedArgs {
+                    current: emergency.extension_count,
+                    max: emergency.tier.max_extensions(),
+                },
+            ));
         }
 
         // Check if already expired
@@ -313,20 +317,20 @@ impl EmergencyValidator {
         // Check signature count meets extension threshold
         let (required, total) = emergency.tier.extension_threshold();
         if signatures.len() < required as usize {
-            return Err(GovernanceAppError::InsufficientSignatures(InsufficientSignaturesArgs {
-                required: required as usize,
-                found: signatures.len(),
-                threshold: format!("{}-of-{}", required, total),
-            }));
+            return Err(GovernanceAppError::InsufficientSignatures(
+                InsufficientSignaturesArgs {
+                    required: required as usize,
+                    found: signatures.len(),
+                    threshold: format!("{}-of-{}", required, total),
+                },
+            ));
         }
 
         Ok(())
     }
 
     /// Check for expired emergencies
-    pub fn check_expiration(
-        active_emergencies: &[ActiveEmergency],
-    ) -> Vec<i32> {
+    pub fn check_expiration(active_emergencies: &[ActiveEmergency]) -> Vec<i32> {
         active_emergencies
             .iter()
             .filter(|e| e.is_expired())
@@ -337,7 +341,7 @@ impl EmergencyValidator {
     /// Calculate expiration timestamp for new emergency
     pub fn calculate_expiration(tier: EmergencyTier) -> DateTime<Utc> {
         let duration_days = tier.max_duration_days() as i64;
-        Utc::now() + Duration::days(duration_days)
+        Utc::now() + Duration::try_days(duration_days).unwrap_or_default()
     }
 
     /// Calculate post-mortem deadline
@@ -346,7 +350,7 @@ impl EmergencyValidator {
         activated_at: DateTime<Utc>,
     ) -> DateTime<Utc> {
         let deadline_days = tier.post_mortem_deadline_days() as i64;
-        activated_at + Duration::days(deadline_days)
+        activated_at + Duration::try_days(deadline_days).unwrap_or_default()
     }
 
     /// Calculate security audit deadline (if required)
@@ -355,7 +359,7 @@ impl EmergencyValidator {
         activated_at: DateTime<Utc>,
     ) -> Option<DateTime<Utc>> {
         tier.security_audit_deadline_days()
-            .map(|days| activated_at + Duration::days(days as i64))
+            .map(|days| activated_at + Duration::try_days(days as i64).unwrap_or_default())
     }
 }
 
@@ -402,8 +406,8 @@ mod tests {
             tier: EmergencyTier::Critical,
             activated_by: "alice".to_string(),
             reason: "Test".to_string(),
-            activated_at: Utc::now() - Duration::days(10),
-            expires_at: Utc::now() - Duration::days(1),
+            activated_at: Utc::now() - Duration::try_days(10).unwrap_or_default(),
+            expires_at: Utc::now() - Duration::try_days(1).unwrap_or_default(),
             extended: false,
             extension_count: 0,
         };
@@ -419,8 +423,8 @@ mod tests {
             tier: EmergencyTier::Urgent,
             activated_by: "alice".to_string(),
             reason: "Test".to_string(),
-            activated_at: Utc::now() - Duration::days(20),
-            expires_at: Utc::now() + Duration::days(10),
+            activated_at: Utc::now() - Duration::try_days(20).unwrap_or_default(),
+            expires_at: Utc::now() + Duration::try_days(10).unwrap_or_default(),
             extended: false,
             extension_count: 0,
         };
@@ -430,5 +434,3 @@ mod tests {
         assert!(emergency.calculate_extension_expiration().is_some());
     }
 }
-
-

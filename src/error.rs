@@ -1,31 +1,43 @@
 use thiserror::Error;
 
+impl From<serde_json::Error> for GovernanceError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::CryptoError(format!("JSON serialization error: {}", err))
+    }
+}
+
+impl From<sqlx::Error> for GovernanceError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::DatabaseError(format!("Database error: {}", err))
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum GovernanceError {
     #[error("Configuration error: {0}")]
     ConfigError(String),
-    
+
     #[error("Database error: {0}")]
     DatabaseError(String),
-    
+
     #[error("GitHub API error: {0}")]
     GitHubError(String),
-    
+
     #[error("Validation error: {0}")]
     ValidationError(String),
-    
+
     #[error("Cryptographic error: {0}")]
     CryptoError(String),
-    
+
     #[error("Webhook processing error: {0}")]
     WebhookError(String),
-    
+
     #[error("Signature verification failed: {0}")]
     SignatureError(String),
-    
+
     #[error("Review period not met: {0}")]
     ReviewPeriodError(String),
-    
+
     #[error("Threshold not satisfied: {0}")]
     ThresholdError(String),
 }
@@ -36,11 +48,17 @@ pub type GovernanceAppError = GovernanceError;
 // Additional error variants for emergency tier system
 impl GovernanceError {
     pub fn invalid_emergency_tier(tier: i32) -> Self {
-        Self::ValidationError(format!("Invalid emergency tier: {}. Must be 1, 2, or 3", tier))
+        Self::ValidationError(format!(
+            "Invalid emergency tier: {}. Must be 1, 2, or 3",
+            tier
+        ))
     }
 
     pub fn insufficient_evidence(length: usize) -> Self {
-        Self::ValidationError(format!("Insufficient evidence: {} characters (minimum 100 required)", length))
+        Self::ValidationError(format!(
+            "Insufficient evidence: {} characters (minimum 100 required)",
+            length
+        ))
     }
 
     pub fn insufficient_signatures(required: usize, found: usize, threshold: String) -> Self {
@@ -111,6 +129,3 @@ pub struct MaxExtensionsReachedArgs {
     pub current: u32,
     pub max: u32,
 }
-
-
-

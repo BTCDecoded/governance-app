@@ -1,0 +1,37 @@
+# BTCDecoded Governance App Configuration
+# Copy this file to config.toml and customize for your deployment
+
+[server]
+database_url = "sqlite://governance.db"
+github_app_id = 123456
+github_private_key_path = "/etc/governance/github-app.pem"
+github_webhook_secret = "env:GITHUB_WEBHOOK_SECRET"
+governance_repo = "BTCDecoded/governance"
+server_host = "0.0.0.0"
+server_port = 8080
+dry_run_mode = true
+log_enforcement_decisions = true
+enforcement_log_path = "/var/log/governance/enforcement.log"
+server_id = "governance-01"
+
+[nostr]
+enabled = true
+server_nsec_path = "/etc/governance/server.nsec"
+relays = [
+    "wss://relay.damus.io",
+    "wss://nos.lol",
+    "wss://relay.nostr.band"
+]
+publish_interval_secs = 3600  # 1 hour
+
+[ots]
+enabled = true
+aggregator_url = "https://alice.btc.calendar.opentimestamps.org"
+monthly_anchor_day = 1  # First day of month
+registry_path = "/var/lib/governance/registries"
+proofs_path = "/var/lib/governance/ots-proofs"
+
+[audit]
+enabled = true
+log_path = "/var/lib/governance/audit-log.jsonl"
+rotation_interval_days = 30

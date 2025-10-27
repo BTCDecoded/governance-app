@@ -1,7 +1,7 @@
-use secp256k1::{PublicKey, Secp256k1, ecdsa::Signature};
+use crate::error::GovernanceError;
+use secp256k1::{ecdsa::Signature, PublicKey, Secp256k1};
 use sha2::{Digest, Sha256};
 use std::str::FromStr;
-use crate::error::GovernanceError;
 
 pub struct SignatureValidator {
     secp: Secp256k1<secp256k1::All>,
@@ -42,7 +42,7 @@ impl SignatureValidator {
 
     pub fn verify_multisig_threshold(
         &self,
-        signatures: &[(String, String)], // (signer, signature)
+        signatures: &[(String, String)],    // (signer, signature)
         required_threshold: (usize, usize), // (required, total)
         maintainer_keys: &std::collections::HashMap<String, String>, // username -> public_key
     ) -> Result<bool, GovernanceError> {
@@ -53,7 +53,7 @@ impl SignatureValidator {
             if let Some(public_key) = maintainer_keys.get(signer) {
                 // Create message for signature verification
                 let message = format!("governance-signature:{}", signer);
-                
+
                 if self.verify_signature(&message, signature, public_key)? {
                     valid_signatures += 1;
                 }
@@ -69,7 +69,3 @@ impl Default for SignatureValidator {
         Self::new()
     }
 }
-
-
-
-

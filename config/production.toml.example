@@ -1,0 +1,237 @@
+# Production Configuration Template for BTCDecoded Governance App
+# Copy this file to production.toml and update with your production values
+
+[server]
+# Server configuration
+port = 8080
+host = "0.0.0.0"
+# Enable HTTPS in production
+https_enabled = true
+cert_file = "/opt/governance-app/ssl/cert.pem"
+key_file = "/opt/governance-app/ssl/key.pem"
+
+[github]
+# GitHub App configuration
+app_id = 123456  # Replace with your production GitHub App ID
+private_key_path = "/opt/governance-app/keys/github_app_private.pem"  # Path to production GitHub App private key
+webhook_secret = "your_production_webhook_secret"  # Replace with your production webhook secret
+# GitHub API configuration
+api_base_url = "https://api.github.com"
+timeout_seconds = 30
+retry_attempts = 3
+rate_limit_requests_per_hour = 5000
+
+[database]
+# Database configuration
+url = "postgresql://governance_user:secure_password@localhost:5432/governance_production"  # Replace with your production database URL
+# Alternative SQLite configuration (uncomment if using SQLite)
+# url = "sqlite:///opt/governance-app/data/governance.db"
+# SQLite-specific configuration
+# wal_mode = true
+# synchronous = "NORMAL"
+# cache_size = 10000
+# temp_store = "MEMORY"
+# journal_mode = "WAL"
+
+[governance]
+# Governance configuration
+dry_run_mode = false  # Set to false for production enforcement
+log_enforcement_decisions = true
+enforcement_log_path = "/var/log/governance-app/enforcement.log"
+# Governance rules configuration
+rules_config_path = "/opt/governance-app/config/governance-rules"
+# Signature verification
+signature_verification_enabled = true
+signature_timeout_seconds = 300
+# Economic node configuration
+economic_node_veto_enabled = true
+economic_node_veto_threshold = 0.3  # 30% of total weight
+economic_node_veto_timeout_seconds = 3600  # 1 hour
+# Governance fork configuration
+governance_fork_enabled = true
+fork_detection_interval_seconds = 300  # 5 minutes
+fork_adoption_threshold = 0.5  # 50% adoption required
+
+[security]
+# Security configuration
+# JWT configuration
+jwt_secret = "your_production_jwt_secret"  # Replace with strong production secret
+jwt_expiration_hours = 24
+# Rate limiting
+rate_limit_requests_per_minute = 100
+rate_limit_burst = 200
+# CORS configuration
+cors_origins = ["https://your-domain.com"]  # Replace with your production domain
+cors_methods = ["GET", "POST", "PUT", "DELETE"]
+cors_headers = ["Content-Type", "Authorization"]
+# Security headers
+security_headers_enabled = true
+hsts_enabled = true
+hsts_max_age_seconds = 31536000  # 1 year
+content_security_policy = "default-src 'self'"
+# Input validation
+max_request_size_bytes = 1048576  # 1MB
+max_webhook_payload_size_bytes = 10485760  # 10MB
+
+[logging]
+# Logging configuration
+level = "info"  # Production logging level
+format = "json"  # JSON format for production
+# Log files
+application_log_path = "/var/log/governance-app/application.log"
+error_log_path = "/var/log/governance-app/error.log"
+audit_log_path = "/var/log/governance-app/audit.log"
+# Log rotation
+max_file_size_mb = 100
+max_files = 10
+compress_old_logs = true
+# Structured logging
+include_timestamp = true
+include_level = true
+include_target = true
+include_thread_id = true
+
+[monitoring]
+# Monitoring configuration
+# Prometheus metrics
+metrics_enabled = true
+metrics_path = "/metrics"
+metrics_port = 9090
+# Health checks
+health_check_enabled = true
+health_check_path = "/health"
+health_check_interval_seconds = 30
+# Performance monitoring
+performance_monitoring_enabled = true
+slow_query_threshold_ms = 1000
+# Alerting
+alerting_enabled = true
+alert_webhook_url = "https://your-alerting-service.com/webhook"  # Replace with your alerting service
+
+[backup]
+# Backup configuration
+enabled = true
+# Database backup
+database_backup_enabled = true
+database_backup_interval_hours = 24
+database_backup_retention_days = 30
+database_backup_path = "/opt/backups/database"
+# Application backup
+application_backup_enabled = true
+application_backup_interval_hours = 168  # Weekly
+application_backup_retention_days = 90
+application_backup_path = "/opt/backups/application"
+# Cloud backup
+cloud_backup_enabled = true
+cloud_backup_provider = "aws_s3"  # or "gcp_gcs", "azure_blob"
+cloud_backup_bucket = "btcdecoded-governance-backups"
+cloud_backup_region = "us-west-2"
+cloud_backup_access_key = "your_access_key"  # Replace with your cloud access key
+cloud_backup_secret_key = "your_secret_key"  # Replace with your cloud secret key
+
+[nostr]
+# Nostr integration configuration
+enabled = true
+relays = ["wss://relay.damus.io", "wss://nostr.wine", "wss://relay.snort.social"]
+private_key_path = "/opt/governance-app/keys/nostr_private.pem"  # Path to Nostr private key
+publish_interval_seconds = 3600  # Publish every hour
+# Event types to publish
+publish_governance_events = true
+publish_health_status = true
+publish_audit_log_heads = true
+# Event filtering
+min_event_importance = "medium"  # low, medium, high, critical
+
+[ots]
+# OpenTimestamps integration configuration
+enabled = true
+# OTS server configuration
+ots_server_url = "https://ots.btc.cat"
+ots_timeout_seconds = 30
+ots_retry_attempts = 3
+# Anchoring configuration
+anchor_interval_hours = 168  # Weekly anchoring
+anchor_retention_days = 365  # Keep anchors for 1 year
+anchor_backup_path = "/opt/governance-app/anchors"
+# Verification
+verify_anchors = true
+verification_timeout_seconds = 60
+
+[audit_log]
+# Audit log configuration
+enabled = true
+# Storage configuration
+storage_type = "file"  # file or database
+file_path = "/var/log/governance-app/audit.log"
+database_table = "audit_logs"
+# Logging configuration
+log_level = "info"
+include_metadata = true
+include_payload = true
+max_payload_size_bytes = 10240  # 10KB
+# Retention
+retention_days = 365
+compression_enabled = true
+# Hash chain
+hash_chain_enabled = true
+hash_algorithm = "sha256"
+# Merkle tree
+merkle_tree_enabled = true
+merkle_tree_interval_hours = 24
+merkle_tree_backup_path = "/opt/governance-app/merkle_trees"
+
+[server_authorization]
+# Server authorization configuration
+enabled = true
+# Registry configuration
+registry_type = "database"  # database or file
+database_table = "authorized_servers"
+file_path = "/opt/governance-app/config/authorized_servers.json"
+# Verification
+verify_ssh_fingerprints = true
+verify_nostr_keys = true
+verify_operator_identity = true
+# Monitoring
+monitor_server_health = true
+health_check_interval_seconds = 300  # 5 minutes
+health_check_timeout_seconds = 30
+# Alerts
+alert_on_unauthorized_access = true
+alert_on_server_compromise = true
+alert_webhook_url = "https://your-alerting-service.com/webhook"  # Replace with your alerting service
+
+[maintenance]
+# Maintenance configuration
+# Automatic maintenance
+auto_maintenance_enabled = true
+maintenance_window_start = "02:00"  # 2 AM
+maintenance_window_duration_hours = 2
+# Database maintenance
+database_vacuum_enabled = true
+database_vacuum_interval_days = 7
+database_analyze_enabled = true
+database_analyze_interval_days = 1
+database_reindex_enabled = true
+database_reindex_interval_days = 30
+# Log maintenance
+log_rotation_enabled = true
+log_rotation_interval_days = 7
+log_compression_enabled = true
+log_retention_days = 90
+# Backup maintenance
+backup_cleanup_enabled = true
+backup_cleanup_interval_days = 1
+backup_verification_enabled = true
+backup_verification_interval_days = 7
+
+[development]
+# Development configuration (disabled in production)
+debug_mode = false
+verbose_logging = false
+mock_external_services = false
+# Testing
+test_mode = false
+test_data_enabled = false
+# Development tools
+profiling_enabled = false
+tracing_enabled = false

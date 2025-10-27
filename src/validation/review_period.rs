@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc, Duration};
 use crate::error::GovernanceError;
+use chrono::{DateTime, Duration, Utc};
 
 pub struct ReviewPeriodValidator;
 
@@ -11,12 +11,12 @@ impl ReviewPeriodValidator {
     ) -> Result<bool, GovernanceError> {
         let now = Utc::now();
         let elapsed = now - opened_at;
-        
+
         // Emergency mode reduces review period to 30 days
         let required_duration = if emergency_mode {
-            Duration::days(30)
+            Duration::try_days(30).unwrap_or_default()
         } else {
-            Duration::days(required_days)
+            Duration::try_days(required_days).unwrap_or_default()
         };
 
         if elapsed >= required_duration {
@@ -38,11 +38,11 @@ impl ReviewPeriodValidator {
         emergency_mode: bool,
     ) -> DateTime<Utc> {
         let required_duration = if emergency_mode {
-            Duration::days(30)
+            Duration::try_days(30).unwrap_or_default()
         } else {
-            Duration::days(required_days)
+            Duration::try_days(required_days).unwrap_or_default()
         };
-        
+
         opened_at + required_duration
     }
 
@@ -53,18 +53,14 @@ impl ReviewPeriodValidator {
     ) -> i64 {
         let now = Utc::now();
         let elapsed = now - opened_at;
-        
+
         let required_duration = if emergency_mode {
-            Duration::days(30)
+            Duration::try_days(30).unwrap_or_default()
         } else {
-            Duration::days(required_days)
+            Duration::try_days(required_days).unwrap_or_default()
         };
-        
+
         let remaining = required_duration - elapsed;
         remaining.num_days().max(0)
     }
 }
-
-
-
-

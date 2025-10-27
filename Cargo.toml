@@ -19,12 +19,16 @@ octocrab = "0.38"
 jsonwebtoken = "9.2"
 
 # Database
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "chrono", "json", "migrate"] }
+sqlx = { version = "0.8.1", features = ["postgres", "sqlite", "runtime-tokio-rustls", "chrono", "json", "migrate"] }
 
 # Cryptography (Bitcoin-compatible)
 secp256k1 = { version = "0.28", features = ["rand"] }
 bitcoin = "0.31"
 sha2 = "0.10"
+hex = "0.4"
+
+# Governance crypto primitives
+developer-sdk = { path = "../developer-sdk" }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -51,6 +55,39 @@ reqwest = { version = "0.12", features = ["json"] }
 
 # Glob patterns
 glob = "0.3"
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Random number generation
+rand = "0.8"
+
+# Nostr protocol
+nostr-sdk = "0.27"
+
+# OpenTimestamps
+opentimestamps = "0.1"
+
+# Additional dependencies for cross-layer validation
+base64 = "0.21"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+regex = "1.10"
+
+[[bin]]
+name = "governance-app"
+path = "src/main.rs"
+
+[[bin]]
+name = "key-manager"
+path = "src/bin/key_manager.rs"
+
+[[bin]]
+name = "test-content-hash"
+path = "src/bin/test_content_hash.rs"
+
+[[bin]]
+name = "test-content-hash-standalone"
+path = "src/bin/test_content_hash_standalone.rs"
 
 [dev-dependencies]
 tokio-test = "0.4"

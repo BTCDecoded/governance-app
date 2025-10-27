@@ -1,7 +1,7 @@
-use chrono::{DateTime, Utc};
+use crate::validation::emergency::{ActiveEmergency, EmergencyTier};
 use crate::validation::review_period::ReviewPeriodValidator;
 use crate::validation::threshold::ThresholdValidator;
-use crate::validation::emergency::{EmergencyTier, ActiveEmergency};
+use chrono::{DateTime, Utc};
 
 pub struct StatusCheckGenerator;
 
@@ -11,11 +11,19 @@ impl StatusCheckGenerator {
         required_days: i64,
         emergency_mode: bool,
     ) -> String {
-        let remaining_days = ReviewPeriodValidator::get_remaining_days(
-            opened_at,
-            required_days,
-            emergency_mode,
-        );
+        Self::generate_review_period_status_with_dry_run(opened_at, required_days, emergency_mode, false)
+    }
+
+    pub fn generate_review_period_status_with_dry_run(
+        opened_at: DateTime<Utc>,
+        required_days: i64,
+        emergency_mode: bool,
+        dry_run: bool,
+    ) -> String {
+        let remaining_days =
+            ReviewPeriodValidator::get_remaining_days(opened_at, required_days, emergency_mode);
+
+        let prefix = if dry_run { "[DRY-RUN] " } else { "" };
 
         if remaining_days > 0 {
             let earliest_merge = ReviewPeriodValidator::get_earliest_merge_date(
@@ -25,13 +33,14 @@ impl StatusCheckGenerator {
             );
 
             format!(
-                "❌ Governance: Review Period Not Met\nRequired: {} days | Elapsed: {} days\nEarliest merge: {}",
+                "{}❌ Governance: Review Period Not Met\nRequired: {} days | Elapsed: {} days\nEarliest merge: {}",
+                prefix,
                 required_days,
                 (Utc::now() - opened_at).num_days(),
                 earliest_merge.format("%Y-%m-%d")
             )
         } else {
-            "✅ Governance: Review Period Met".to_string()
+            format!("{}✅ Governance: Review Period Met", prefix)
         }
     }
 
@@ -42,16 +51,37 @@ impl StatusCheckGenerator {
         signers: &[String],
         pending: &[String],
     ) -> String {
+        Self::generate_signature_status_with_dry_run(
+            current_signatures,
+            required_signatures,
+            total_maintainers,
+            signers,
+            pending,
+            false,
+        )
+    }
+
+    pub fn generate_signature_status_with_dry_run(
+        current_signatures: usize,
+        required_signatures: usize,
+        total_maintainers: usize,
+        signers: &[String],
+        pending: &[String],
+        dry_run: bool,
+    ) -> String {
+        let prefix = if dry_run { "[DRY-RUN] " } else { "" };
+        
         if current_signatures >= required_signatures {
-            "✅ Governance: Signatures Complete".to_string()
+            format!("{}✅ Governance: Signatures Complete", prefix)
         } else {
-            ThresholdValidator::format_threshold_status(
+            let base_status = ThresholdValidator::format_threshold_status(
                 current_signatures,
                 required_signatures,
                 total_maintainers,
                 signers,
                 pending,
-            )
+            );
+            format!("{}{}", prefix, base_status)
         }
     }
 
@@ -66,10 +96,114 @@ impl StatusCheckGenerator {
         } else {
             format!(
                 "❌ Governance: Requirements Not Met\n\n{}\n\n{}",
-                review_period_status,
-                signature_status
+                review_period_status, signature_status
             )
         }
+    }
+
+    /// Generate status check with tier classification and economic node veto status
+    pub fn generate_tier_status(
+        tier: u32,
+        tier_name: &str,
+        review_period_met: bool,
+        signatures_met: bool,
+        economic_veto_active: bool,
+        review_period_status: &str,
+        signature_status: &str,
+    ) -> String {
+        let tier_emoji = match tier {
+            1 => "🔧", // Routine
+            2 => "✨", // Feature
+            3 => "⚡", // Consensus-Adjacent
+            4 => "🚨", // Emergency
+            5 => "🏛️", // Governance
+            _ => "❓",
+        };
+
+        let mut status = format!("{} Tier {}: {}\n", tier_emoji, tier, tier_name);
+
+        if economic_veto_active && tier >= 3 {
+            status.push_str("⚠️ Economic Node Veto Active\n");
+        }
+
+        if review_period_met && signatures_met && !economic_veto_active {
+            status.push_str("✅ Governance: All Requirements Met - Ready to Merge");
+        } else {
+            status.push_str("❌ Governance: Requirements Not Met\n");
+            status.push_str(&format!(
+                "\n{}\n\n{}",
+                review_period_status, signature_status
+            ));
+
+            if economic_veto_active && tier >= 3 {
+                status.push_str("\n\n⚠️ Economic Node Veto: 30%+ hashpower or 40%+ economic activity has vetoed this change");
+            }
+        }
+
+        status
+    }
+
+    /// Generate economic node veto status
+    pub fn generate_economic_veto_status(
+        veto_active: bool,
+        mining_veto_percent: f64,
+        economic_veto_percent: f64,
+        total_nodes: u32,
+        veto_count: u32,
+    ) -> String {
+        if veto_active {
+            format!(
+                "⚠️ Economic Node Veto Active\n\
+                Mining Veto: {:.1}% (threshold: 30%)\n\
+                Economic Veto: {:.1}% (threshold: 40%)\n\
+                Total Nodes: {} | Veto Count: {}",
+                mining_veto_percent, economic_veto_percent, total_nodes, veto_count
+            )
+        } else {
+            format!(
+                "✅ Economic Node Veto: Not Active\n\
+                Mining Veto: {:.1}% (threshold: 30%)\n\
+                Economic Veto: {:.1}% (threshold: 40%)\n\
+                Total Nodes: {} | Veto Count: {}",
+                mining_veto_percent, economic_veto_percent, total_nodes, veto_count
+            )
+        }
+    }
+
+    /// Generate detailed status with all governance requirements
+    pub fn generate_detailed_status(
+        tier: u32,
+        tier_name: &str,
+        review_period_met: bool,
+        signatures_met: bool,
+        economic_veto_active: bool,
+        review_period_status: &str,
+        signature_status: &str,
+        economic_veto_status: &str,
+        documentation_link: Option<&str>,
+    ) -> String {
+        let mut status = Self::generate_tier_status(
+            tier,
+            tier_name,
+            review_period_met,
+            signatures_met,
+            economic_veto_active,
+            review_period_status,
+            signature_status,
+        );
+
+        if tier >= 3 {
+            status.push_str(&format!(
+                "\n\n--- Economic Node Status ---\n{}",
+                economic_veto_status
+            ));
+        }
+
+        if let Some(link) = documentation_link {
+            status.push_str(&format!("\n\n📚 Documentation: {}", link));
+        }
+
+        status
     }
 
     /// Generate status check message for active emergency tier
@@ -80,7 +214,7 @@ impl StatusCheckGenerator {
         let (sig_required, sig_total) = tier.signature_threshold();
         let review_days = tier.review_period_days();
         let remaining = emergency.remaining_duration();
-        
+
         let expiration_text = if remaining.num_hours() < 24 {
             format!("⏰ Expires in {} hours", remaining.num_hours())
         } else {
@@ -174,23 +308,20 @@ impl StatusCheckGenerator {
         } else {
             format!(
                 "❌ Governance: Requirements Not Met\n\n{}\n\n{}",
-                review_period_status,
-                signature_status
+                review_period_status, signature_status
             )
         };
 
         if let Some(emerg) = emergency {
             let emergency_status = Self::generate_emergency_status(emerg);
             let expiration_warning = Self::generate_emergency_expiration_warning(emerg);
-            
+
             if expiration_warning.is_empty() {
                 format!("{}\n\n---\n\n{}", emergency_status, base_status)
             } else {
                 format!(
                     "{}\n\n---\n\n{}\n\n---\n\n{}",
-                    emergency_status,
-                    expiration_warning,
-                    base_status
+                    emergency_status, expiration_warning, base_status
                 )
             }
         } else {
@@ -221,7 +352,7 @@ impl StatusCheckGenerator {
                 "⏳ Post-mortem pending"
             }
         };
-        
+
         status.push_str(&format!(
             "{}\nDeadline: {}\n",
             pm_status,
@@ -243,7 +374,7 @@ impl StatusCheckGenerator {
                         "⏳ Security audit pending"
                     }
                 };
-                
+
                 status.push_str(&format!(
                     "\n{}\nDeadline: {}",
                     audit_status,
@@ -255,6 +386,3 @@ impl StatusCheckGenerator {
         status
     }
 }
-
-
-

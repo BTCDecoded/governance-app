@@ -2,6 +2,7 @@ use serde_json::Value;
 use tracing::{info, warn};
 
 use crate::database::Database;
+use crate::validation::tier_classification;
 
 pub async fn handle_pull_request_event(
     database: &Database,
@@ -36,15 +37,44 @@ pub async fn handle_pull_request_event(
         repo if repo.contains("developer-sdk") => 5,
         _ => {
             warn!("Unknown repository: {}", repo_name);
-            return Ok(axum::response::Json(serde_json::json!({"status": "unknown_repo"})));
+            return Ok(axum::response::Json(
+                serde_json::json!({"status": "unknown_repo"}),
+            ));
         }
     };
 
+    // Classify PR tier based on file changes
+    let tier = tier_classification::classify_pr_tier(payload).await;
+    info!("PR #{} classified as Tier {}", pr_number, tier);
+
     // Store PR in database
-    match database.create_pull_request(repo_name, pr_number as i32, head_sha, layer).await {
+    match database
+        .create_pull_request(repo_name, pr_number as i32, head_sha, layer)
+        .await
+    {
         Ok(_) => {
             info!("PR #{} stored in database", pr_number);
-            Ok(axum::response::Json(serde_json::json!({"status": "stored"})))
+
+            // Log governance event
+            let _ = database
+                .log_governance_event(
+                    "pr_opened",
+                    Some(repo_name),
+                    Some(pr_number as i32),
+                    None,
+                    &serde_json::json!({
+                        "tier": tier,
+                        "layer": layer,
+                        "head_sha": head_sha
+                    }),
+                )
+                .await;
+
+            Ok(axum::response::Json(serde_json::json!({
+                "status": "stored",
+                "tier": tier,
+                "layer": layer
+            })))
         }
         Err(e) => {
             warn!("Failed to store PR: {}", e);
@@ -52,7 +82,3 @@ pub async fn handle_pull_request_event(
         }
     }
 }
-
-
-
-
