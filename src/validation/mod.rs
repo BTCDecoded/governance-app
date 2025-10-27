@@ -6,4 +6,5 @@ pub mod review_period;
 pub mod signatures;
 pub mod threshold;
 pub mod tier_classification;
+pub mod verification_check;
 pub mod version_pinning;
