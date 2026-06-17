@@ -151,8 +151,7 @@ fn parse_repo_name(repo_name: &str) -> crate::error::Result<(String, String)> {
     let parts: Vec<&str> = repo_name.split('/').collect();
     if parts.len() != 2 {
         return Err(GovernanceError::ValidationError(format!(
-            "Invalid repository name format: {}",
-            repo_name
+            "Invalid repository name format: {repo_name}"
         )));
     }
     Ok((parts[0].to_string(), parts[1].to_string()))
@@ -273,13 +272,13 @@ impl std::fmt::Display for VerificationValidationResult {
                 write!(f, "Verification not required for this repository")
             }
             VerificationValidationResult::MissingWorkflow { workflow } => {
-                write!(f, "Missing verification workflow: {}", workflow)
+                write!(f, "Missing verification workflow: {workflow}")
             }
             VerificationValidationResult::MissingTool { tool } => {
-                write!(f, "Missing required verification tool: {}", tool)
+                write!(f, "Missing required verification tool: {tool}")
             }
             VerificationValidationResult::ConfigurationError { message } => {
-                write!(f, "Verification configuration error: {}", message)
+                write!(f, "Verification configuration error: {message}")
             }
         }
     }

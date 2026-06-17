@@ -4,7 +4,7 @@
 
 use super::types::ForkDecision;
 use crate::error::GovernanceError;
-use blvm_sdk::governance::{verify_signature, PublicKey, Signature};
+use blvm_sdk::governance::{PublicKey, Signature, verify_signature};
 use hex;
 use serde_json;
 
@@ -34,19 +34,18 @@ pub fn verify_fork_decision_signature(
     let signature_bytes = hex::decode(&decision.signature)
         .map_err(|_| GovernanceError::InvalidSignature("Invalid hex format".to_string()))?;
 
-    let signature = Signature::from_bytes(&signature_bytes).map_err(|e| {
-        GovernanceError::InvalidSignature(format!("Invalid signature format: {}", e))
-    })?;
+    let signature = Signature::from_bytes(&signature_bytes)
+        .map_err(|e| GovernanceError::InvalidSignature(format!("Invalid signature format: {e}")))?;
 
     // Verify
     verify_signature(&signature, &message, public_key)
-        .map_err(|e| GovernanceError::CryptoError(format!("Verification error: {}", e)))
+        .map_err(|e| GovernanceError::CryptoError(format!("Verification error: {e}")))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use blvm_sdk::governance::{signatures::sign_message, GovernanceKeypair};
+    use blvm_sdk::governance::{GovernanceKeypair, signatures::sign_message};
     use chrono::Utc;
 
     #[test]

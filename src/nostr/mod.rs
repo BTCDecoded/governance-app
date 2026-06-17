@@ -12,16 +12,12 @@ pub mod publisher;
 pub mod zap_tracker;
 pub mod zap_voting;
 
-pub use bot_manager::NostrBotManager;
 pub use client::{NostrClient, ZapEvent};
 pub use events::{
-    CombinedRequirement, GovernanceActionEvent, GovernanceStatus, Hashes, KeyholderAnnouncement,
-    KeyholderSignature, LayerRequirement, NodeStatusReport, ServerHealth, TierRequirement,
+    CombinedRequirement, KeyholderAnnouncement, KeyholderSignature, LayerRequirement,
+    TierRequirement,
 };
 pub use governance_publisher::GovernanceActionPublisher;
-pub use helpers::{
-    create_keyholder_announcement_event, publish_merge_action, publish_review_period_notification,
-};
+pub use helpers::publish_merge_action;
 pub use publisher::StatusPublisher;
-pub use zap_tracker::{ZapContribution, ZapTracker};
-pub use zap_voting::{VoteTotals, VoteType, ZapVote, ZapVotingProcessor};
+pub use zap_tracker::ZapTracker;

@@ -5,7 +5,6 @@
 //! All weight calculations return 0.0 since contributions no longer affect governance.
 
 use anyhow::Result;
-use chrono::Utc;
 use sqlx::SqlitePool;
 use tracing::{debug, info};
 

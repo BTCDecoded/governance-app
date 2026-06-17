@@ -46,7 +46,7 @@ impl AdoptionTracker {
         .bind(Utc::now())
         .execute(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to track adoption: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to track adoption: {e}")))?;
 
         // Log adoption event
         self.log_fork_event(
@@ -116,7 +116,7 @@ impl AdoptionTracker {
         .fetch_all(&self.pool)
         .await
         .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to fetch adoption decisions: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to fetch adoption decisions: {e}"))
         })?;
 
         let mut node_count = 0;
@@ -185,8 +185,7 @@ impl AdoptionTracker {
                     });
                 }
                 return Err(GovernanceError::DatabaseError(format!(
-                    "Failed to fetch rulesets: {}",
-                    e
+                    "Failed to fetch rulesets: {e}"
                 )));
             }
         };
@@ -327,7 +326,7 @@ impl AdoptionTracker {
         .bind(Utc::now())
         .execute(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to log fork event: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to log fork event: {e}")))?;
 
         Ok(())
     }

@@ -4,8 +4,8 @@
 //! with server health, audit log information, and verification hashes.
 
 use ::hex;
-use anyhow::{anyhow, Result};
-use chrono::{DateTime, Datelike, Timelike, Utc};
+use anyhow::{Result, anyhow};
+use chrono::{DateTime, Datelike, Utc};
 use nostr_sdk::prelude::*;
 use sha2::{Digest, Sha256};
 use std::fs;

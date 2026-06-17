@@ -1,10 +1,9 @@
 use axum::{
+    Router,
     extract::State,
     response::Json,
     routing::{get, post},
-    Router,
 };
-use chrono::Datelike;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::time::Duration;
@@ -123,7 +122,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     // After 3 consecutive failures, attempt reconnection
                     if consecutive_failures >= 3 {
-                        error!("Database connection unhealthy after {} consecutive failures - attempting reconnection", consecutive_failures);
+                        error!(
+                            "Database connection unhealthy after {} consecutive failures - attempting reconnection",
+                            consecutive_failures
+                        );
 
                         // Check if pool is closed before attempting reconnection
                         let should_reconnect = current_db
@@ -141,7 +143,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     consecutive_failures = 0;
                                 }
                                 Err(e) => {
-                                    error!("Database reconnection failed: {} - will retry on next health check", e);
+                                    error!(
+                                        "Database reconnection failed: {} - will retry on next health check",
+                                        e
+                                    );
                                 }
                             }
                         }
@@ -164,11 +169,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize Nostr client and status publisher
     let nostr_client = if config.nostr.enabled {
         let nsec = std::fs::read_to_string(&config.nostr.server_nsec_path)
-            .map_err(|e| format!("Failed to read Nostr key: {}", e))?;
+            .map_err(|e| format!("Failed to read Nostr key: {e}"))?;
 
         let client = NostrClient::new(nsec, config.nostr.relays.clone())
             .await
-            .map_err(|e| format!("Failed to create Nostr client: {}", e))?;
+            .map_err(|e| format!("Failed to create Nostr client: {e}"))?;
 
         Some(client)
     } else {

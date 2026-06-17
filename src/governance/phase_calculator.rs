@@ -72,9 +72,7 @@ impl GovernancePhaseCalculator {
         )
         .fetch_optional(&self.pool)
         .await
-        .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to get block height: {}", e))
-        })?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get block height: {e}")))?;
 
         Ok(height.unwrap_or(0) as u64)
     }
@@ -91,7 +89,7 @@ impl GovernancePhaseCalculator {
         .fetch_optional(&self.pool)
         .await
         .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to get contributor count: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to get contributor count: {e}"))
         })?;
 
         Ok(count.unwrap_or(0) as u32)

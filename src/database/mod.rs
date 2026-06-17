@@ -3,7 +3,7 @@ pub mod queries;
 pub mod schema;
 
 use crate::error::GovernanceError;
-use sqlx::{sqlite::SqliteConnectOptions, sqlite::SqlitePoolOptions, Row, SqlitePool};
+use sqlx::{Row, SqlitePool, sqlite::SqliteConnectOptions, sqlite::SqlitePoolOptions};
 use std::str::FromStr;
 
 #[derive(Clone)]
@@ -108,8 +108,7 @@ impl Database {
                 if let Ok(count) = tables_check {
                     if count < 3 {
                         return Err(GovernanceError::DatabaseError(format!(
-                            "Migrations may have failed: expected at least 3 tables, found {}",
-                            count
+                            "Migrations may have failed: expected at least 3 tables, found {count}"
                         )));
                     }
                 }
@@ -124,8 +123,7 @@ impl Database {
                     Ok(())
                 } else {
                     Err(GovernanceError::DatabaseError(format!(
-                        "Migration failed: {}",
-                        err_str
+                        "Migration failed: {err_str}"
                     )))
                 }
             }
@@ -154,7 +152,7 @@ impl Database {
             .execute(&self.backend.pool)
             .await
             .map(|_| true)
-            .map_err(|e| GovernanceError::DatabaseError(format!("Health check failed: {}", e)))
+            .map_err(|e| GovernanceError::DatabaseError(format!("Health check failed: {e}")))
     }
 
     /// Get database connection pool statistics
@@ -311,7 +309,7 @@ impl Database {
         // Parse existing signatures or create empty array
         let mut signatures: Vec<Value> = if let Some(json_str) = signatures_json {
             serde_json::from_str(&json_str).map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to parse signatures JSON: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to parse signatures JSON: {e}"))
             })?
         } else {
             vec![]
@@ -319,12 +317,12 @@ impl Database {
 
         // Add new signature
         signatures.push(serde_json::to_value(&new_signature).map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to serialize signature: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to serialize signature: {e}"))
         })?);
 
         // Update signatures in database
         let updated_json = serde_json::to_string(&signatures).map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to serialize signatures: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to serialize signatures: {e}"))
         })?;
 
         sqlx::query(
@@ -359,7 +357,7 @@ impl Database {
         .bind(pr_number)
         .bind(maintainer)
         .bind(serde_json::to_string(details).map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to serialize event details: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to serialize event details: {e}"))
         })?)
         .execute(pool)
         .await
@@ -429,7 +427,7 @@ impl Database {
                 .map_err(|e| GovernanceError::DatabaseError(e.to_string()))?;
 
             let details: serde_json::Value = serde_json::from_str(&details_str).map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to parse event details JSON: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to parse event details JSON: {e}"))
             })?;
 
             events.push(crate::database::models::GovernanceEvent {
@@ -766,10 +764,9 @@ impl Database {
                         &format!(
                             r#"
                             UPDATE build_runs 
-                            SET status = ?, error_message = ?, completed_at = {}, updated_at = CURRENT_TIMESTAMP
+                            SET status = ?, error_message = ?, completed_at = {completed}, updated_at = CURRENT_TIMESTAMP
                             WHERE release_version = ? AND repo_name = ?
-                            "#,
-                            completed
+                            "#
                         )
                     )
                     .bind(new_status)

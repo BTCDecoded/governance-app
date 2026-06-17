@@ -3,8 +3,7 @@
 //! Provides utilities for verifying server authorization and managing
 //! the authorized server registry.
 
-use anyhow::{anyhow, Result};
-use std::collections::HashMap;
+use anyhow::{Result, anyhow};
 use tracing::{debug, info, warn};
 
 use crate::authorization::server::ServerStatus;
@@ -184,7 +183,7 @@ pub fn verify_server_authorization_detailed(
                     is_active,
                     is_compromised,
                     error_message: Some("NPUB does not match".to_string()),
-                    server_info: Some(s.clone().into()),
+                    server_info: Some(s.clone()),
                 };
             }
 
@@ -204,7 +203,7 @@ pub fn verify_server_authorization_detailed(
                 is_active,
                 is_compromised,
                 error_message,
-                server_info: Some(s.clone().into()),
+                server_info: Some(s.clone()),
             }
         }
         None => ServerVerificationResult {
@@ -256,7 +255,7 @@ impl ServerVerificationResult {
         ];
 
         if let Some(error) = &self.error_message {
-            status.push(format!("Error: {}", error));
+            status.push(format!("Error: {error}"));
         }
 
         if let Some(server) = &self.server_info {

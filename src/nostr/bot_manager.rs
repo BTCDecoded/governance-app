@@ -6,7 +6,7 @@
 //! - research: Educational content (optional)
 //! - network: Network metrics (optional)
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use tracing::{info, warn};
 

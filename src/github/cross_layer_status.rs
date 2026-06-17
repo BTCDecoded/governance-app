@@ -6,11 +6,11 @@
 use crate::database::models::PullRequest as DatabasePullRequest;
 use crate::error::GovernanceError;
 use crate::github::client::GitHubClient;
+use crate::validation::ValidationResult;
 use crate::validation::content_hash::{ContentHashValidator, SyncStatus};
 use crate::validation::equivalence_proof::EquivalenceProofValidator;
 use crate::validation::verification_check::check_verification_status;
 use crate::validation::version_pinning::{VersionPinningValidator, VersionReference};
-use crate::validation::ValidationResult;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
@@ -165,8 +165,7 @@ impl CrossLayerStatusChecker {
                 &equivalence_proof_status,
             ),
             target_url: Some(format!(
-                "https://github.com/{}/{}/pull/{}",
-                owner, repo, pr_number
+                "https://github.com/{owner}/{repo}/pull/{pr_number}"
             )),
             context: "cross-layer-sync".to_string(),
             details: CrossLayerStatusDetails {
@@ -228,10 +227,7 @@ impl CrossLayerStatusChecker {
         };
 
         let message = if files_missing.is_empty() {
-            format!(
-                "✅ Content Hash Sync: All {} files are synchronized",
-                files_checked
-            )
+            format!("✅ Content Hash Sync: All {files_checked} files are synchronized")
         } else {
             format!(
                 "❌ Content Hash Sync: {} files missing updates: {}",
@@ -292,10 +288,7 @@ impl CrossLayerStatusChecker {
         };
 
         let message = if references_invalid.is_empty() {
-            format!(
-                "✅ Version Pinning: All {} references are valid",
-                references_checked
-            )
+            format!("✅ Version Pinning: All {references_checked} references are valid")
         } else {
             format!(
                 "❌ Version Pinning: {} invalid references found",
@@ -327,7 +320,7 @@ impl CrossLayerStatusChecker {
         );
 
         // Check if this is a verification-required repository
-        let repo_name = format!("{}/{}", owner, repo);
+        let repo_name = format!("{owner}/{repo}");
         if crate::validation::verification_check::requires_verification(&repo_name)? {
             // Get PR data from GitHub
             let pr_json = self
@@ -375,7 +368,7 @@ impl CrossLayerStatusChecker {
             match verification_result {
                 ValidationResult::Valid { message } => Ok(EquivalenceProofStatus {
                     status: StatusState::Success,
-                    message: format!("✅ Equivalence Proof: {}", message),
+                    message: format!("✅ Equivalence Proof: {message}"),
                     tests_run,
                     tests_passed,
                     tests_failed,
@@ -392,7 +385,7 @@ impl CrossLayerStatusChecker {
                     }
                     Ok(EquivalenceProofStatus {
                         status: StatusState::Failure,
-                        message: format!("❌ Equivalence Proof: {}", message_clone),
+                        message: format!("❌ Equivalence Proof: {message_clone}"),
                         tests_run,
                         tests_passed,
                         tests_failed: failed,
@@ -401,7 +394,7 @@ impl CrossLayerStatusChecker {
                 }
                 ValidationResult::Pending { message } => Ok(EquivalenceProofStatus {
                     status: StatusState::Pending,
-                    message: format!("⏳ Equivalence Proof: {}", message),
+                    message: format!("⏳ Equivalence Proof: {message}"),
                     tests_run,
                     tests_passed,
                     tests_failed,
@@ -1216,15 +1209,21 @@ mod tests {
         let recommendations =
             checker.generate_recommendations(&content_hash, &version_pinning, &equivalence_proof);
         assert_eq!(recommendations.len(), 3);
-        assert!(recommendations
-            .iter()
-            .any(|r| r.contains("Update corresponding Consensus Proof files")));
-        assert!(recommendations
-            .iter()
-            .any(|r| r.contains("Update version references")));
-        assert!(recommendations
-            .iter()
-            .any(|r| r.contains("Fix failing equivalence tests")));
+        assert!(
+            recommendations
+                .iter()
+                .any(|r| r.contains("Update corresponding Consensus Proof files"))
+        );
+        assert!(
+            recommendations
+                .iter()
+                .any(|r| r.contains("Update version references"))
+        );
+        assert!(
+            recommendations
+                .iter()
+                .any(|r| r.contains("Fix failing equivalence tests"))
+        );
     }
 
     #[tokio::test]

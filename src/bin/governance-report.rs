@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse month or use current month
     let month = if let Some(month_str) = args.month {
-        DateTime::parse_from_rfc3339(&format!("{}-01T00:00:00Z", month_str))
+        DateTime::parse_from_rfc3339(&format!("{month_str}-01T00:00:00Z"))
             .map_err(|_| "Invalid month format. Use YYYY-MM")?
             .with_timezone(&Utc)
     } else {
@@ -70,9 +70,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Write to file or stdout
     if let Some(output_path) = args.output {
         std::fs::write(&output_path, output)?;
-        println!("Report written to {}", output_path);
+        println!("Report written to {output_path}");
     } else {
-        println!("{}", output);
+        println!("{output}");
     }
 
     Ok(())
@@ -83,7 +83,7 @@ fn format_report_markdown(
 ) -> String {
     let mut md = String::new();
 
-    md.push_str(&format!("# Governance Report\n\n"));
+    md.push_str("# Governance Report\n\n");
     md.push_str(&format!(
         "**Period**: {} to {}\n\n",
         report.period_start.format("%Y-%m-%d"),
@@ -104,7 +104,7 @@ fn format_report_markdown(
             maintainer.username, maintainer.count, maintainer.percentage
         ));
     }
-    md.push_str("\n");
+    md.push('\n');
 
     // PR Statistics
     md.push_str("## PR Statistics\n\n");
@@ -125,7 +125,7 @@ fn format_report_markdown(
     for tier in &report.pr_statistics.by_tier {
         md.push_str(&format!("| {} | {} |\n", tier.tier, tier.count));
     }
-    md.push_str("\n");
+    md.push('\n');
 
     // Challenge Statistics
     md.push_str("## Challenge Statistics\n\n");
@@ -178,7 +178,7 @@ fn format_report_markdown(
             review_type.state, review_type.count
         ));
     }
-    md.push_str("\n");
+    md.push('\n');
 
     // Maintainer Activity
     md.push_str("## Maintainer Activity\n\n");

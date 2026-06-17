@@ -6,7 +6,7 @@ use crate::error::GovernanceError;
 use crate::github::client::GitHubClient;
 use crate::governance_review::models::{GovernanceReviewCase, GovernanceReviewWarning};
 use chrono::Utc;
-use tracing::{info, warn};
+use tracing::info;
 
 pub struct GovernanceReviewGitHubIntegration {
     pub github_client: GitHubClient,
@@ -220,8 +220,8 @@ See: https://github.com/{}/{}/issues?q=is:issue+{}"#,
             Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
             case.resolution_reason
                 .as_ref()
-                .map(|r| format!("**Resolution:** {}", r))
-                .unwrap_or_else(|| "".to_string())
+                .map(|r| format!("**Resolution:** {r}"))
+                .unwrap_or_default()
         );
 
         // Create issue comment

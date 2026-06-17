@@ -44,7 +44,7 @@ impl RulesetVersioning {
     ) -> Result<String, GovernanceError> {
         let version_string = version.to_string();
         let config_string = serde_json::to_string(config).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to serialize config: {}", e))
+            GovernanceError::ConfigError(format!("Failed to serialize config: {e}"))
         })?;
 
         let mut hasher = Sha256::new();

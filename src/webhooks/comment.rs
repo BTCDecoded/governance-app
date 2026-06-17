@@ -3,8 +3,8 @@ use tracing::{error, info, warn};
 
 use crate::crypto::signatures::SignatureManager;
 use crate::database::Database;
-use crate::governance_review::models::policy;
 use crate::governance_review::GovernanceReviewCaseManager;
+use crate::governance_review::models::policy;
 
 pub async fn handle_comment_event(
     database: &Database,
@@ -96,7 +96,7 @@ pub async fn handle_comment_event(
 
             // Verify signature using blvm-sdk
             let signature_manager = SignatureManager::new();
-            let message = format!("PR #{} in {}", pr_number, repo_name);
+            let message = format!("PR #{pr_number} in {repo_name}");
 
             match signature_manager.verify_governance_signature(
                 &message,
@@ -235,7 +235,9 @@ async fn handle_challenge_command(
     // Parse target_type and target_id (first two words)
     let parts: Vec<&str> = remainder.split_whitespace().collect();
     if parts.len() < 4 {
-        warn!("Invalid challenge format. Expected: /governance-challenge <target_type> <target_id> \"reason\" <signature>");
+        warn!(
+            "Invalid challenge format. Expected: /governance-challenge <target_type> <target_id> \"reason\" <signature>"
+        );
         return Ok(axum::response::Json(
             serde_json::json!({"status": "error", "error": "Invalid format. Use: /governance-challenge <target_type> <target_id> \"reason\" <signature>"}),
         ));
@@ -282,7 +284,7 @@ async fn handle_challenge_command(
     // Get database pool
     let pool = database
         .get_sqlite_pool()
-        .ok_or_else(|| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+        .ok_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let challenge_manager = ChallengeManager::new(pool.clone());
 
@@ -351,7 +353,9 @@ async fn handle_tier_override(
     // Extract tier number and justification
     let parts: Vec<&str> = remainder.splitn(2, '"').collect();
     if parts.len() < 2 {
-        warn!("Invalid tier override format. Expected: /governance-tier-override <tier> \"justification\"");
+        warn!(
+            "Invalid tier override format. Expected: /governance-tier-override <tier> \"justification\""
+        );
         return Ok(axum::response::Json(
             serde_json::json!({"status": "error", "error": "Invalid format. Use: /governance-tier-override <tier> \"justification\""}),
         ));
@@ -543,7 +547,7 @@ async fn handle_governance_review_case(
     // Create case (on-platform only per policy)
     let pool = database
         .get_sqlite_pool()
-        .ok_or_else(|| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+        .ok_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let case_manager = GovernanceReviewCaseManager::new(pool.clone());
 

@@ -144,7 +144,7 @@ impl ContentHashValidator {
 
         DirectoryHashResult {
             directory_path: "directory".to_string(),
-            merkle_root: format!("sha256:{}", merkle_root),
+            merkle_root: format!("sha256:{merkle_root}"),
             file_count: sorted_files.len(),
             total_size,
         }
@@ -197,7 +197,7 @@ impl ContentHashValidator {
         let mapping = self
             .correspondence_mappings
             .get(source_file)
-            .ok_or_else(|| format!("No correspondence mapping found for file: {}", source_file))?;
+            .ok_or_else(|| format!("No correspondence mapping found for file: {source_file}"))?;
 
         // Check if target file exists
         let target_content = target_repo_files
@@ -260,10 +260,7 @@ impl ContentHashValidator {
                         }
                     }
                     Err(e) => {
-                        println!(
-                            "Failed to verify correspondence for {}: {}",
-                            changed_file, e
-                        );
+                        println!("Failed to verify correspondence for {changed_file}: {e}");
                         missing_files.push(changed_file.clone());
                     }
                 }
@@ -350,7 +347,7 @@ fn main() {
     // Test file hash computation
     let test_content = b"test consensus rule content";
     let hash = validator.compute_file_hash(test_content);
-    println!("File hash: {}", hash);
+    println!("File hash: {hash}");
 
     // Test directory hash computation
     let test_files = vec![
@@ -386,11 +383,11 @@ fn main() {
             println!("Correspondence verification: {}", verification.is_valid);
             println!("Source hash: {}", verification.computed_hash);
             if let Some(expected) = verification.expected_hash {
-                println!("Target hash: {}", expected);
+                println!("Target hash: {expected}");
             }
         }
         Err(e) => {
-            println!("Correspondence verification failed: {}", e);
+            println!("Correspondence verification failed: {e}");
         }
     }
 
@@ -407,7 +404,7 @@ fn main() {
             println!("Outdated files: {:?}", sync_report.outdated_files);
         }
         Err(e) => {
-            println!("Bidirectional sync failed: {}", e);
+            println!("Bidirectional sync failed: {e}");
         }
     }
 

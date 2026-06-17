@@ -4,7 +4,7 @@
 //! from GitHub repositories via the GitHub API.
 
 use crate::error::GovernanceError;
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use octocrab::Octocrab;
 use std::collections::HashMap;
 use tracing::{debug, error, info, warn};
@@ -59,7 +59,7 @@ impl GitHubFileOperations {
             .personal_token(token)
             .build()
             .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to create GitHub client: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create GitHub client: {e}"))
             })?;
 
         Ok(Self { client })
@@ -85,7 +85,7 @@ impl GitHubFileOperations {
             .r#ref(branch)
             .send()
             .await
-            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch file: {}", e)))?;
+            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch file: {e}")))?;
 
         // Handle the response - octocrab 0.38 returns ContentItems with items: Vec<Content>
         // For a single file, items should contain one Content with type "file"
@@ -106,8 +106,7 @@ impl GitHubFileOperations {
                         .decode(encoded.trim_end_matches('\n'))
                         .map_err(|e| {
                             GovernanceError::GitHubError(format!(
-                                "Failed to decode base64 content: {}",
-                                e
+                                "Failed to decode base64 content: {e}"
                             ))
                         })?,
                     None => {
@@ -126,16 +125,13 @@ impl GitHubFileOperations {
                 })
             }
             "dir" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a directory, not a file",
-                file_path
+                "Path '{file_path}' is a directory, not a file"
             ))),
             "symlink" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a symlink, not a file",
-                file_path
+                "Path '{file_path}' is a symlink, not a file"
             ))),
             "submodule" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a submodule, not a file",
-                file_path
+                "Path '{file_path}' is a submodule, not a file"
             ))),
             _ => Err(GovernanceError::GitHubError(format!(
                 "Unknown content type: {}",
@@ -167,9 +163,7 @@ impl GitHubFileOperations {
             .r#ref(branch)
             .send()
             .await
-            .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to fetch directory: {}", e))
-            })?;
+            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch directory: {e}")))?;
 
         // Handle the response - octocrab 0.38 returns ContentItems with items: Vec<Content>
         // For a directory, items contains multiple Content items
@@ -244,7 +238,7 @@ impl GitHubFileOperations {
             .per_page(1)
             .send()
             .await
-            .map_err(|e| GovernanceError::GitHubError(format!("Failed to get branch: {}", e)))?;
+            .map_err(|e| GovernanceError::GitHubError(format!("Failed to get branch: {e}")))?;
 
         // Extract commit SHA from first commit
         let commit_sha = commits
@@ -341,7 +335,7 @@ impl GitHubFileOperations {
 
         // Get repository information using octocrab API
         let repository = self.client.repos(owner, repo).get().await.map_err(|e| {
-            GovernanceError::GitHubError(format!("Failed to get repository info: {}", e))
+            GovernanceError::GitHubError(format!("Failed to get repository info: {e}"))
         })?;
 
         // Get the default branch's latest commit SHA
@@ -434,7 +428,7 @@ impl GitHubFileOperations {
             .r#ref(branch)
             .send()
             .await
-            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch file: {}", e)))?;
+            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch file: {e}")))?;
 
         // Handle the response - octocrab 0.38 returns ContentItems with items: Vec<Content>
         // For a single file, items should contain one Content with type "file"
@@ -455,8 +449,7 @@ impl GitHubFileOperations {
                         .decode(encoded.trim_end_matches('\n'))
                         .map_err(|e| {
                             GovernanceError::GitHubError(format!(
-                                "Failed to decode base64 content: {}",
-                                e
+                                "Failed to decode base64 content: {e}"
                             ))
                         })?,
                     None => {
@@ -475,16 +468,13 @@ impl GitHubFileOperations {
                 })
             }
             "dir" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a directory, not a file",
-                file_path
+                "Path '{file_path}' is a directory, not a file"
             ))),
             "symlink" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a symlink, not a file",
-                file_path
+                "Path '{file_path}' is a symlink, not a file"
             ))),
             "submodule" => Err(GovernanceError::GitHubError(format!(
-                "Path '{}' is a submodule, not a file",
-                file_path
+                "Path '{file_path}' is a submodule, not a file"
             ))),
             _ => Err(GovernanceError::GitHubError(format!(
                 "Unknown content type: {}",

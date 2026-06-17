@@ -87,7 +87,7 @@ impl std::str::FromStr for ServerStatus {
             "retiring" => Ok(ServerStatus::Retiring),
             "inactive" => Ok(ServerStatus::Inactive),
             "compromised" => Ok(ServerStatus::Compromised),
-            _ => Err(format!("Invalid server status: {}", s)),
+            _ => Err(format!("Invalid server status: {s}")),
         }
     }
 }
@@ -176,7 +176,7 @@ impl std::str::FromStr for ServerAction {
             "add" => Ok(ServerAction::Add),
             "remove" => Ok(ServerAction::Remove),
             "compromise" => Ok(ServerAction::Compromise),
-            _ => Err(format!("Invalid server action: {}", s)),
+            _ => Err(format!("Invalid server action: {s}")),
         }
     }
 }

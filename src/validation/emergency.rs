@@ -245,7 +245,7 @@ impl EmergencyValidator {
                 InsufficientSignaturesArgs {
                     required: required as usize,
                     found: activation.signatures.len(),
-                    threshold: format!("{}-of-{}", required, total),
+                    threshold: format!("{required}-of-{total}"),
                 },
             ));
         }
@@ -285,22 +285,22 @@ impl EmergencyValidator {
         // Parse public key from hex string
         let public_key_bytes =
             hex::decode(sig.public_key.trim_start_matches("0x")).map_err(|e| {
-                GovernanceAppError::InvalidSignature(format!("Invalid public key hex: {}", e))
+                GovernanceAppError::InvalidSignature(format!("Invalid public key hex: {e}"))
             })?;
 
         let public_key =
             blvm_sdk::governance::PublicKey::from_bytes(&public_key_bytes).map_err(|e| {
-                GovernanceAppError::InvalidSignature(format!("Invalid public key format: {}", e))
+                GovernanceAppError::InvalidSignature(format!("Invalid public key format: {e}"))
             })?;
 
         // Parse signature from hex string
         let signature_bytes = hex::decode(sig.signature.trim_start_matches("0x")).map_err(|e| {
-            GovernanceAppError::InvalidSignature(format!("Invalid signature hex: {}", e))
+            GovernanceAppError::InvalidSignature(format!("Invalid signature hex: {e}"))
         })?;
 
         let signature =
             blvm_sdk::governance::Signature::from_bytes(&signature_bytes).map_err(|e| {
-                GovernanceAppError::InvalidSignature(format!("Invalid signature format: {}", e))
+                GovernanceAppError::InvalidSignature(format!("Invalid signature format: {e}"))
             })?;
 
         // Create message to verify: serialize activation data
@@ -314,15 +314,14 @@ impl EmergencyValidator {
         }))
         .map_err(|e| {
             GovernanceAppError::InvalidSignature(format!(
-                "Failed to serialize activation message: {}",
-                e
+                "Failed to serialize activation message: {e}"
             ))
         })?;
 
         // Verify signature using blvm-sdk
         let verified = blvm_sdk::governance::verify_signature(&signature, &message, &public_key)
             .map_err(|e| {
-                GovernanceAppError::InvalidSignature(format!("Signature verification error: {}", e))
+                GovernanceAppError::InvalidSignature(format!("Signature verification error: {e}"))
             })?;
 
         if !verified {
@@ -369,7 +368,7 @@ impl EmergencyValidator {
                 InsufficientSignaturesArgs {
                     required: required as usize,
                     found: signatures.len(),
-                    threshold: format!("{}-of-{}", required, total),
+                    threshold: format!("{required}-of-{total}"),
                 },
             ));
         }
@@ -551,15 +550,21 @@ mod tests {
 
     #[test]
     fn test_emergency_tier_description() {
-        assert!(EmergencyTier::Critical
-            .description()
-            .contains("Network-threatening"));
-        assert!(EmergencyTier::Urgent
-            .description()
-            .contains("Serious security"));
-        assert!(EmergencyTier::Elevated
-            .description()
-            .contains("Important priority"));
+        assert!(
+            EmergencyTier::Critical
+                .description()
+                .contains("Network-threatening")
+        );
+        assert!(
+            EmergencyTier::Urgent
+                .description()
+                .contains("Serious security")
+        );
+        assert!(
+            EmergencyTier::Elevated
+                .description()
+                .contains("Important priority")
+        );
     }
 
     #[test]

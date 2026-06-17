@@ -31,8 +31,7 @@ impl MultisigManager {
                     .parse::<secp256k1::PublicKey>()
                     .map_err(|e| {
                         GovernanceError::CryptoError(format!(
-                            "Invalid public key for {}: {}",
-                            signer, e
+                            "Invalid public key for {signer}: {e}"
                         ))
                     })?;
 
@@ -41,8 +40,7 @@ impl MultisigManager {
                     .parse::<secp256k1::ecdsa::Signature>()
                     .map_err(|e| {
                         GovernanceError::CryptoError(format!(
-                            "Invalid signature from {}: {}",
-                            signer, e
+                            "Invalid signature from {signer}: {e}"
                         ))
                     })?;
 
@@ -84,8 +82,7 @@ impl MultisigManager {
                     .parse::<secp256k1::PublicKey>()
                     .map_err(|e| {
                         GovernanceError::CryptoError(format!(
-                            "Invalid public key for {}: {}",
-                            signer, e
+                            "Invalid public key for {signer}: {e}"
                         ))
                     })?;
 
@@ -93,8 +90,7 @@ impl MultisigManager {
                     .parse::<secp256k1::ecdsa::Signature>()
                     .map_err(|e| {
                         GovernanceError::CryptoError(format!(
-                            "Invalid signature from {}: {}",
-                            signer, e
+                            "Invalid signature from {signer}: {e}"
                         ))
                     })?;
 

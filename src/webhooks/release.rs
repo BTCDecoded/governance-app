@@ -157,7 +157,10 @@ pub async fn handle_repository_dispatch(
                     .all(|run| run.1 == "success"); // Access tuple field by index
 
                 if all_successful {
-                    info!("All builds successful for release {} - proceeding with artifact collection", release_version);
+                    info!(
+                        "All builds successful for release {} - proceeding with artifact collection",
+                        release_version
+                    );
 
                     // Trigger artifact collection and release creation
                     // This is done asynchronously to avoid blocking the webhook response
@@ -181,7 +184,10 @@ pub async fn handle_repository_dispatch(
                         }
                     });
                 } else {
-                    warn!("Some builds failed for release {} - skipping artifact collection and release creation", release_version);
+                    warn!(
+                        "Some builds failed for release {} - skipping artifact collection and release creation",
+                        release_version
+                    );
                 }
             } else {
                 info!(

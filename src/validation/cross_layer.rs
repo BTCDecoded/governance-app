@@ -2,7 +2,7 @@ use crate::error::GovernanceError;
 use crate::github::cross_layer_status::{CrossLayerStatusCheck, CrossLayerStatusChecker};
 use crate::github::file_operations::GitHubFileOperations;
 use crate::validation::content_hash::{ContentHashValidator, SyncReport, SyncStatus};
-use crate::validation::diff_parser::{DiffParser, FileDiff};
+use crate::validation::diff_parser::DiffParser;
 use crate::validation::version_pinning::{
     VersionManifest, VersionPinningConfig, VersionPinningValidator,
 };
@@ -81,8 +81,7 @@ impl CrossLayerValidator {
                 Self::verify_no_consensus_modifications(target_repo, rule, github_token).await
             }
             _ => Err(GovernanceError::ValidationError(format!(
-                "Unknown validation type: {}",
-                validation_type
+                "Unknown validation type: {validation_type}"
             ))),
         }
     }
@@ -145,8 +144,7 @@ impl CrossLayerValidator {
             Err(e) => {
                 // If file doesn't exist or can't be fetched, return error
                 Err(GovernanceError::ValidationError(format!(
-                    "Failed to verify file correspondence: target file {} not found in {}: {}",
-                    target_pattern, target_repo, e
+                    "Failed to verify file correspondence: target file {target_pattern} not found in {target_repo}: {e}"
                 )))
             }
         }
@@ -157,8 +155,7 @@ impl CrossLayerValidator {
         let parts: Vec<&str> = repo_name.split('/').collect();
         if parts.len() != 2 {
             return Err(GovernanceError::ValidationError(format!(
-                "Invalid repository name format (expected owner/repo): {}",
-                repo_name
+                "Invalid repository name format (expected owner/repo): {repo_name}"
             )));
         }
         Ok((parts[0].to_string(), parts[1].to_string()))
@@ -296,7 +293,10 @@ impl CrossLayerValidator {
                 {
                     Ok(client) => client,
                     Err(e) => {
-                        warn!("Failed to create GitHub client: {}. Falling back to file pattern check.", e);
+                        warn!(
+                            "Failed to create GitHub client: {}. Falling back to file pattern check.",
+                            e
+                        );
                         return Self::check_consensus_patterns(&consensus_patterns, &[]);
                     }
                 };
@@ -336,17 +336,22 @@ impl CrossLayerValidator {
                                         ) {
                                             // Verify changes are import-only
                                             if !DiffParser::is_import_only_changes(file_diff) {
-                                                return Err(GovernanceError::ValidationError(format!(
-                                                    "Consensus file {} contains non-import changes. Only import statements are allowed when allowed_imports_only is true.",
-                                                    file_diff.filename
-                                                )));
+                                                return Err(GovernanceError::ValidationError(
+                                                    format!(
+                                                        "Consensus file {} contains non-import changes. Only import statements are allowed when allowed_imports_only is true.",
+                                                        file_diff.filename
+                                                    ),
+                                                ));
                                             }
                                         }
                                     }
                                     info!("Import-only validation passed for all consensus files");
                                 }
                                 Err(e) => {
-                                    warn!("Failed to parse diff: {}. Falling back to file pattern check.", e);
+                                    warn!(
+                                        "Failed to parse diff: {}. Falling back to file pattern check.",
+                                        e
+                                    );
                                     return Self::check_consensus_patterns(
                                         &consensus_patterns,
                                         &changed_files,
@@ -391,7 +396,9 @@ impl CrossLayerValidator {
 
         // If allowed_imports_only but no PR info, we can't do diff analysis
         if allowed_imports_only {
-            warn!("Import-only validation requires PR diff, but no PR number provided. File path check passed.");
+            warn!(
+                "Import-only validation requires PR diff, but no PR number provided. File path check passed."
+            );
         }
 
         // Default: pass (backward compatibility)
@@ -407,10 +414,8 @@ impl CrossLayerValidator {
     ) -> Result<Option<String>, GovernanceError> {
         // Get PR diff using GitHub API
         // Construct diff URL manually (octocrab 0.38)
-        let diff_url = format!(
-            "https://api.github.com/repos/{}/{}/pulls/{}.diff",
-            owner, repo, pr_number
-        );
+        let diff_url =
+            format!("https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}.diff");
 
         // Fetch diff content using reqwest (already in dependencies)
         let response = reqwest::Client::new()
@@ -418,13 +423,13 @@ impl CrossLayerValidator {
             .header("Accept", "application/vnd.github.v3.diff")
             .send()
             .await
-            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch diff: {}", e)))?;
+            .map_err(|e| GovernanceError::GitHubError(format!("Failed to fetch diff: {e}")))?;
 
         if response.status().is_success() {
             let diff = response
                 .text()
                 .await
-                .map_err(|e| GovernanceError::GitHubError(format!("Failed to read diff: {}", e)))?;
+                .map_err(|e| GovernanceError::GitHubError(format!("Failed to read diff: {e}")))?;
             Ok(Some(diff))
         } else {
             warn!("Failed to fetch diff: HTTP {}", response.status());
@@ -464,8 +469,7 @@ impl CrossLayerValidator {
 
         if !consensus_files_changed.is_empty() {
             return Err(GovernanceError::ValidationError(format!(
-                "Consensus-critical files modified: {:?}. This requires Tier 3+ governance approval.",
-                consensus_files_changed
+                "Consensus-critical files modified: {consensus_files_changed:?}. This requires Tier 3+ governance approval."
             )));
         }
 
@@ -541,9 +545,9 @@ impl CrossLayerValidator {
         match sync_report.sync_status {
             SyncStatus::Synchronized => {
                 format!(
-                        "✅ Cross-Layer Sync: All {} files are synchronized between Orange Paper and Consensus Proof",
-                        sync_report.changed_files.len()
-                    )
+                    "✅ Cross-Layer Sync: All {} files are synchronized between Orange Paper and Consensus Proof",
+                    sync_report.changed_files.len()
+                )
             }
             SyncStatus::MissingUpdates => {
                 format!(
@@ -585,7 +589,7 @@ impl CrossLayerValidator {
         // Create GitHub client with proper authentication
         let github_client = crate::github::client::GitHubClient::new(app_id, private_key_path)
             .map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to create GitHub client: {}", e))
+                GovernanceError::ConfigError(format!("Failed to create GitHub client: {e}"))
             })?;
 
         // Create status checker
@@ -625,7 +629,7 @@ impl CrossLayerValidator {
         // Create GitHub client with proper authentication
         let github_client = crate::github::client::GitHubClient::new(app_id, private_key_path)
             .map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to create GitHub client: {}", e))
+                GovernanceError::ConfigError(format!("Failed to create GitHub client: {e}"))
             })?;
 
         // Get PR head SHA for status check

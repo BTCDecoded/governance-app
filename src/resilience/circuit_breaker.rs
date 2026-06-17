@@ -266,7 +266,7 @@ where
                 write!(f, "Circuit breaker is open - service unavailable")
             }
             CircuitBreakerError::ServiceError(e) => {
-                write!(f, "Service error: {}", e)
+                write!(f, "Service error: {e}")
             }
         }
     }

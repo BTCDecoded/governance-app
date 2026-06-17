@@ -145,7 +145,7 @@ impl ContentHashValidator {
 
         DirectoryHashResult {
             directory_path: "directory".to_string(),
-            merkle_root: format!("sha256:{}", merkle_root),
+            merkle_root: format!("sha256:{merkle_root}"),
             file_count: sorted_files.len(),
             total_size,
         }
@@ -200,8 +200,7 @@ impl ContentHashValidator {
             .get(source_file)
             .ok_or_else(|| {
                 GovernanceError::ValidationError(format!(
-                    "No correspondence mapping found for file: {}",
-                    source_file
+                    "No correspondence mapping found for file: {source_file}"
                 ))
             })?;
 
@@ -427,12 +426,16 @@ mod tests {
         let mappings = ContentHashValidator::generate_correspondence_map();
 
         assert!(!mappings.is_empty());
-        assert!(mappings
-            .iter()
-            .any(|m| m.orange_paper_file == "consensus-rules/block-validation.md"));
-        assert!(mappings
-            .iter()
-            .any(|m| m.consensus_proof_file == "proofs/block-validation.rs"));
+        assert!(
+            mappings
+                .iter()
+                .any(|m| m.orange_paper_file == "consensus-rules/block-validation.md")
+        );
+        assert!(
+            mappings
+                .iter()
+                .any(|m| m.consensus_proof_file == "proofs/block-validation.rs")
+        );
     }
 
     #[test]
@@ -471,9 +474,11 @@ mod tests {
         let result = validator.verify_correspondence(source_file, source_content, &target_files);
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Corresponding file not found"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Corresponding file not found")
+        );
     }
 }

@@ -2,7 +2,7 @@
 //!
 //! Provides HTTP endpoints for viewing governance adoption metrics
 
-use axum::{extract::State, http::StatusCode, response::Json, routing::get, Router};
+use axum::{Router, extract::State, http::StatusCode, response::Json, routing::get};
 use serde_json::Value;
 
 // use crate::error::GovernanceError;

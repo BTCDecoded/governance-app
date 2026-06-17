@@ -748,7 +748,9 @@ async fn test_config_hash_calculation() -> Result<(), Box<dyn std::error::Error>
     // But they should have the same length and be valid hex
     assert_eq!(hash1.len(), hash2.len());
     assert_eq!(hash1.len(), 64); // SHA256 produces 64-character hex string
-    println!("✅ Config hashes generated (note: includes timestamp so identical configs have different hashes)");
+    println!(
+        "✅ Config hashes generated (note: includes timestamp so identical configs have different hashes)"
+    );
 
     // Different configs should have different hashes
     assert_ne!(hash1, hash3);

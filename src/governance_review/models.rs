@@ -2,7 +2,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GovernanceReviewCase {
@@ -126,7 +125,6 @@ pub struct TimeLimit {
 
 // Policy constants
 pub mod policy {
-    use chrono::Duration;
 
     // Time limits (from policy)
     pub const RESPONSE_DEADLINE_DAYS: i64 = 30;

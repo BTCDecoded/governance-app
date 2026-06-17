@@ -6,7 +6,7 @@
 use crate::error::GovernanceError;
 use regex::Regex;
 use std::collections::HashSet;
-use tracing::{debug, warn};
+use tracing::debug;
 
 /// Represents a file diff with additions and deletions
 #[derive(Debug, Clone)]

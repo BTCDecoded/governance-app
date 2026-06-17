@@ -46,7 +46,7 @@ impl std::str::FromStr for KeyType {
             "emergency" => Ok(KeyType::Emergency),
             "github_app" => Ok(KeyType::GitHubApp),
             "system" => Ok(KeyType::System),
-            _ => Err(format!("Unknown key type: {}", s)),
+            _ => Err(format!("Unknown key type: {s}")),
         }
     }
 }
@@ -115,7 +115,7 @@ impl std::str::FromStr for KeyStatus {
             "revoked" => Ok(KeyStatus::Revoked),
             "expired" => Ok(KeyStatus::Expired),
             "compromised" => Ok(KeyStatus::Compromised),
-            _ => Err(format!("Unknown key status: {}", s)),
+            _ => Err(format!("Unknown key status: {s}")),
         }
     }
 }
@@ -198,7 +198,7 @@ impl KeyManager {
         let rotation_period = key_type.rotation_period();
         let expires_at = Utc::now()
             + chrono::Duration::from_std(rotation_period)
-                .map_err(|e| GovernanceError::CryptoError(format!("Invalid duration: {}", e)))?;
+                .map_err(|e| GovernanceError::CryptoError(format!("Invalid duration: {e}")))?;
 
         // Create key metadata
         let key_metadata = KeyMetadata {
@@ -249,7 +249,7 @@ impl KeyManager {
         .bind(serde_json::to_string(&metadata.metadata)?)
         .execute(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to store key metadata: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to store key metadata: {e}")))?;
 
         Ok(())
     }
@@ -258,7 +258,7 @@ impl KeyManager {
     fn generate_key_id(&self, key_type: &KeyType, owner: &str) -> Result<String, GovernanceError> {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map_err(|e| GovernanceError::CryptoError(format!("Time error: {}", e)))?
+            .map_err(|e| GovernanceError::CryptoError(format!("Time error: {e}")))?
             .as_secs();
 
         let random_part = rand::random::<u32>();
@@ -295,19 +295,20 @@ impl KeyManager {
         .bind(key_id)
         .fetch_optional(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch key metadata: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch key metadata: {e}")))?;
 
         if let Some(row) = row {
             let metadata = KeyMetadata {
                 id: Some(row.get("id")),
                 key_id: row.get::<String, _>("key_id"),
-                key_type: row.get::<String, _>("key_type").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key type: {}", e))
-                })?,
+                key_type: row
+                    .get::<String, _>("key_type")
+                    .parse()
+                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid key type: {e}")))?,
                 owner: row.get::<String, _>("owner"),
                 public_key: row.get::<String, _>("public_key"),
                 status: row.get::<String, _>("status").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key status: {}", e))
+                    GovernanceError::CryptoError(format!("Invalid key status: {e}"))
                 })?,
                 created_at: row.get::<DateTime<Utc>, _>("created_at"),
                 expires_at: row.get::<DateTime<Utc>, _>("expires_at"),
@@ -343,9 +344,7 @@ impl KeyManager {
         .bind(key_id)
         .execute(&self.pool)
         .await
-        .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to update key usage: {}", e))
-        })?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to update key usage: {e}")))?;
 
         // Update cache
         {
@@ -432,7 +431,7 @@ impl KeyManager {
         .execute(&self.pool)
         .await
         .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to update maintainer public key: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to update maintainer public key: {e}"))
         })?;
 
         Ok(())
@@ -457,8 +456,7 @@ impl KeyManager {
         .await
         .map_err(|e| {
             GovernanceError::DatabaseError(format!(
-                "Failed to update emergency keyholder public key: {}",
-                e
+                "Failed to update emergency keyholder public key: {e}"
             ))
         })?;
 
@@ -481,7 +479,7 @@ impl KeyManager {
         .bind(key_id)
         .execute(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to revoke key: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to revoke key: {e}")))?;
 
         // Update cache
         {
@@ -516,20 +514,21 @@ impl KeyManager {
         .bind(status.as_str())
         .fetch_all(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch keys: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch keys: {e}")))?;
 
         let mut keys = Vec::new();
         for row in rows {
             let metadata = KeyMetadata {
                 id: Some(row.get("id")),
                 key_id: row.get::<String, _>("key_id"),
-                key_type: row.get::<String, _>("key_type").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key type: {}", e))
-                })?,
+                key_type: row
+                    .get::<String, _>("key_type")
+                    .parse()
+                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid key type: {e}")))?,
                 owner: row.get::<String, _>("owner"),
                 public_key: row.get::<String, _>("public_key"),
                 status: row.get::<String, _>("status").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key status: {}", e))
+                    GovernanceError::CryptoError(format!("Invalid key status: {e}"))
                 })?,
                 created_at: row.get::<DateTime<Utc>, _>("created_at"),
                 expires_at: row.get::<DateTime<Utc>, _>("expires_at"),
@@ -563,20 +562,21 @@ impl KeyManager {
         .bind(rotation_warning_threshold)
         .fetch_all(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch keys needing rotation: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to fetch keys needing rotation: {e}")))?;
 
         let mut keys = Vec::new();
         for row in rows {
             let metadata = KeyMetadata {
                 id: Some(row.get("id")),
                 key_id: row.get::<String, _>("key_id"),
-                key_type: row.get::<String, _>("key_type").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key type: {}", e))
-                })?,
+                key_type: row
+                    .get::<String, _>("key_type")
+                    .parse()
+                    .map_err(|e| GovernanceError::CryptoError(format!("Invalid key type: {e}")))?,
                 owner: row.get::<String, _>("owner"),
                 public_key: row.get::<String, _>("public_key"),
                 status: row.get::<String, _>("status").parse().map_err(|e| {
-                    GovernanceError::CryptoError(format!("Invalid key status: {}", e))
+                    GovernanceError::CryptoError(format!("Invalid key status: {e}"))
                 })?,
                 created_at: row.get::<DateTime<Utc>, _>("created_at"),
                 expires_at: row.get::<DateTime<Utc>, _>("expires_at"),
@@ -596,7 +596,7 @@ impl KeyManager {
             .fetch_one(&self.pool)
             .await
             .map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to get total keys: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to get total keys: {e}"))
             })?;
 
         let active_keys = sqlx::query_scalar::<_, i64>(
@@ -604,25 +604,21 @@ impl KeyManager {
         )
         .fetch_one(&self.pool)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get active keys: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get active keys: {e}")))?;
 
         let expired_keys = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM key_metadata WHERE status = 'expired'",
         )
         .fetch_one(&self.pool)
         .await
-        .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to get expired keys: {}", e))
-        })?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get expired keys: {e}")))?;
 
         let revoked_keys = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM key_metadata WHERE status = 'revoked'",
         )
         .fetch_one(&self.pool)
         .await
-        .map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to get revoked keys: {}", e))
-        })?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get revoked keys: {e}")))?;
 
         Ok(KeyStatistics {
             total_keys: total_keys as u64,

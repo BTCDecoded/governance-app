@@ -4,7 +4,6 @@
 
 use clap::{Parser, Subcommand};
 use serde_json::json;
-use std::env;
 use std::fs;
 
 #[derive(Parser)]
@@ -132,7 +131,7 @@ fn list_rulesets(detailed: bool) -> Result<(), Box<dyn std::error::Error>> {
     println!("📋 Available governance rulesets:");
 
     let rulesets_dir = "governance-exports";
-    if !fs::metadata(rulesets_dir).is_ok() {
+    if fs::metadata(rulesets_dir).is_err() {
         println!("❌ No rulesets directory found");
         return Ok(());
     }
@@ -164,7 +163,7 @@ fn list_rulesets(detailed: bool) -> Result<(), Box<dyn std::error::Error>> {
         date_b.cmp(date_a)
     });
 
-    for (i, (path, export)) in rulesets.iter().enumerate() {
+    for (i, (_path, export)) in rulesets.iter().enumerate() {
         let ruleset_id = export
             .get("ruleset_id")
             .and_then(|id| id.as_str())
@@ -189,18 +188,18 @@ fn list_rulesets(detailed: bool) -> Result<(), Box<dyn std::error::Error>> {
 
         if detailed {
             if let Some(description) = export.get("metadata").and_then(|m| m.get("description")) {
-                println!("     Description: {}", description);
+                println!("     Description: {description}");
             }
 
             if let Some(source) = export
                 .get("metadata")
                 .and_then(|m| m.get("source_repository"))
             {
-                println!("     Source: {}", source);
+                println!("     Source: {source}");
             }
 
             if let Some(commit) = export.get("metadata").and_then(|m| m.get("commit_hash")) {
-                println!("     Commit: {}", commit);
+                println!("     Commit: {commit}");
             }
         }
     }
@@ -231,12 +230,12 @@ fn show_current_ruleset() -> Result<(), Box<dyn std::error::Error>> {
             .and_then(|d| d.as_str())
             .unwrap_or("unknown");
 
-        println!("  Ruleset: {}", ruleset_id);
-        println!("  Version: {}", version);
-        println!("  Created: {}", created_at);
+        println!("  Ruleset: {ruleset_id}");
+        println!("  Version: {version}");
+        println!("  Created: {created_at}");
 
         if let Some(description) = current.get("metadata").and_then(|m| m.get("description")) {
-            println!("  Description: {}", description);
+            println!("  Description: {description}");
         }
     } else {
         println!("❌ No current ruleset found");
@@ -251,12 +250,12 @@ fn migrate_to_ruleset(
     force: bool,
     backup: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🔄 Migrating to ruleset: {}", ruleset);
+    println!("🔄 Migrating to ruleset: {ruleset}");
 
     // Find the ruleset file
-    let ruleset_file = format!("governance-exports/{}.json", ruleset);
-    if !fs::metadata(&ruleset_file).is_ok() {
-        return Err(format!("Ruleset not found: {}", ruleset).into());
+    let ruleset_file = format!("governance-exports/{ruleset}.json");
+    if fs::metadata(&ruleset_file).is_err() {
+        return Err(format!("Ruleset not found: {ruleset}").into());
     }
 
     // Load the target ruleset
@@ -268,7 +267,7 @@ fn migrate_to_ruleset(
 
     if !force {
         println!("⚠️  This will change the current governance ruleset");
-        println!("   Target: {}", ruleset);
+        println!("   Target: {ruleset}");
         println!("   Continue? (y/N): ");
 
         let mut input = String::new();
@@ -289,7 +288,7 @@ fn migrate_to_ruleset(
 
         if fs::metadata("governance-exports/current.json").is_ok() {
             fs::copy("governance-exports/current.json", &backup_file)?;
-            println!("📦 Backup created: {}", backup_file);
+            println!("📦 Backup created: {backup_file}");
         }
     }
 
@@ -300,7 +299,7 @@ fn migrate_to_ruleset(
     log_migration("migrate", ruleset, "Migration completed successfully")?;
 
     println!("✅ Migration completed successfully!");
-    println!("   Current ruleset: {}", ruleset);
+    println!("   Current ruleset: {ruleset}");
 
     Ok(())
 }
@@ -310,7 +309,7 @@ fn create_ruleset(
     description: Option<String>,
     version: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🆕 Creating new ruleset: {}", name);
+    println!("🆕 Creating new ruleset: {name}");
 
     // Load current governance configuration
     let current_config = load_current_governance_config()?;
@@ -350,31 +349,31 @@ fn create_ruleset(
     });
 
     // Save ruleset
-    let ruleset_file = format!("governance-exports/{}.json", name);
+    let ruleset_file = format!("governance-exports/{name}.json");
     fs::create_dir_all("governance-exports")?;
     fs::write(&ruleset_file, serde_json::to_string_pretty(&export)?)?;
 
     println!("✅ Ruleset created successfully!");
-    println!("   File: {}", ruleset_file);
-    println!("   ID: {}", name);
-    println!("   Version: {}", ruleset_version);
+    println!("   File: {ruleset_file}");
+    println!("   ID: {name}");
+    println!("   Version: {ruleset_version}");
 
     Ok(())
 }
 
 fn compare_rulesets(ruleset1: &str, ruleset2: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🔍 Comparing rulesets: {} vs {}", ruleset1, ruleset2);
+    println!("🔍 Comparing rulesets: {ruleset1} vs {ruleset2}");
 
     // Load both rulesets
-    let file1 = format!("governance-exports/{}.json", ruleset1);
-    let file2 = format!("governance-exports/{}.json", ruleset2);
+    let file1 = format!("governance-exports/{ruleset1}.json");
+    let file2 = format!("governance-exports/{ruleset2}.json");
 
-    if !fs::metadata(&file1).is_ok() {
-        return Err(format!("Ruleset not found: {}", ruleset1).into());
+    if fs::metadata(&file1).is_err() {
+        return Err(format!("Ruleset not found: {ruleset1}").into());
     }
 
-    if !fs::metadata(&file2).is_ok() {
-        return Err(format!("Ruleset not found: {}", ruleset2).into());
+    if fs::metadata(&file2).is_err() {
+        return Err(format!("Ruleset not found: {ruleset2}").into());
     }
 
     let content1 = fs::read_to_string(&file1)?;
@@ -412,9 +411,9 @@ fn compare_rulesets(ruleset1: &str, ruleset2: &str) -> Result<(), Box<dyn std::e
 
 fn compare_json_section(name: &str, section1: &serde_json::Value, section2: &serde_json::Value) {
     if section1 == section2 {
-        println!("  ✅ {}: Identical", name);
+        println!("  ✅ {name}: Identical");
     } else {
-        println!("  ❌ {}: Different", name);
+        println!("  ❌ {name}: Different");
 
         // Show some differences
         if let (Some(obj1), Some(obj2)) = (section1.as_object(), section2.as_object()) {
@@ -425,21 +424,21 @@ fn compare_json_section(name: &str, section1: &serde_json::Value, section2: &ser
             let only_in_2: Vec<_> = keys2.difference(&keys1).collect();
 
             if !only_in_1.is_empty() {
-                println!("    Only in first: {:?}", only_in_1);
+                println!("    Only in first: {only_in_1:?}");
             }
             if !only_in_2.is_empty() {
-                println!("    Only in second: {:?}", only_in_2);
+                println!("    Only in second: {only_in_2:?}");
             }
         }
     }
 }
 
 fn validate_ruleset(ruleset: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🔍 Validating ruleset: {}", ruleset);
+    println!("🔍 Validating ruleset: {ruleset}");
 
-    let ruleset_file = format!("governance-exports/{}.json", ruleset);
-    if !fs::metadata(&ruleset_file).is_ok() {
-        return Err(format!("Ruleset not found: {}", ruleset).into());
+    let ruleset_file = format!("governance-exports/{ruleset}.json");
+    if fs::metadata(&ruleset_file).is_err() {
+        return Err(format!("Ruleset not found: {ruleset}").into());
     }
 
     let content = fs::read_to_string(&ruleset_file)?;
@@ -461,8 +460,8 @@ fn validate_ruleset_content(ruleset: &serde_json::Value) -> Result<(), Box<dyn s
     ];
 
     for field in &required_fields {
-        if !ruleset.get(field).is_some() {
-            return Err(format!("Missing required field: {}", field).into());
+        if ruleset.get(field).is_none() {
+            return Err(format!("Missing required field: {field}").into());
         }
     }
 
@@ -483,10 +482,10 @@ fn validate_ruleset_content(ruleset: &serde_json::Value) -> Result<(), Box<dyn s
 }
 
 fn show_migration_history(limit: usize) -> Result<(), Box<dyn std::error::Error>> {
-    println!("📜 Migration history (last {} entries):", limit);
+    println!("📜 Migration history (last {limit} entries):");
 
     let history_file = "governance-exports/migration-history.jsonl";
-    if !fs::metadata(history_file).is_ok() {
+    if fs::metadata(history_file).is_err() {
         println!("❌ No migration history found");
         return Ok(());
     }
@@ -516,7 +515,7 @@ fn show_migration_history(limit: usize) -> Result<(), Box<dyn std::error::Error>
                 .unwrap_or("unknown");
             let message = entry.get("message").and_then(|m| m.as_str()).unwrap_or("");
 
-            println!("  {} - {} {} ({})", timestamp, action, ruleset, message);
+            println!("  {timestamp} - {action} {ruleset} ({message})");
         }
     }
 
@@ -524,7 +523,7 @@ fn show_migration_history(limit: usize) -> Result<(), Box<dyn std::error::Error>
 }
 
 fn rollback_to_ruleset(ruleset: &str, force: bool) -> Result<(), Box<dyn std::error::Error>> {
-    println!("↩️ Rolling back to ruleset: {}", ruleset);
+    println!("↩️ Rolling back to ruleset: {ruleset}");
 
     // This is essentially the same as migrate
     migrate_to_ruleset(ruleset, force, true)?;

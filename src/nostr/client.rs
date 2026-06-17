@@ -3,7 +3,7 @@
 //! Manages connections to multiple Nostr relays and publishes
 //! governance status updates with proper error handling and retry logic.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use nostr_sdk::prelude::*;
 use std::collections::HashMap;
 use std::str::FromStr;

@@ -132,14 +132,14 @@ impl DecisionLogger {
             .create(true)
             .append(true)
             .open(path)
-            .map_err(|e| GovernanceError::ConfigError(format!("Failed to open log file: {}", e)))?;
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to open log file: {e}")))?;
 
         let log_entry = serde_json::to_string_pretty(decision).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to serialize decision: {}", e))
+            GovernanceError::ConfigError(format!("Failed to serialize decision: {e}"))
         })?;
 
-        writeln!(file, "{}", log_entry).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to write to log file: {}", e))
+        writeln!(file, "{log_entry}").map_err(|e| {
+            GovernanceError::ConfigError(format!("Failed to write to log file: {e}"))
         })?;
 
         Ok(())

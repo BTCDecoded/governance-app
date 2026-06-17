@@ -484,8 +484,7 @@ impl VersionPinningValidator {
         content_hash: &str,
     ) -> String {
         format!(
-            "// @blvm-spec-version: {}\n// @blvm-spec-commit: {}\n// @blvm-spec-hash: {}",
-            version, commit_sha, content_hash
+            "// @blvm-spec-version: {version}\n// @blvm-spec-commit: {commit_sha}\n// @blvm-spec-hash: {content_hash}"
         )
     }
 

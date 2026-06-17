@@ -1,9 +1,9 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use clap::{Arg, Command};
 use std::path::Path;
 use tracing::{error, info};
 
-use blvm_commons::audit::{build_merkle_tree, verify_audit_log, verify_merkle_root, AuditLogger};
+use blvm_commons::audit::{AuditLogger, build_merkle_tree, verify_audit_log, verify_merkle_root};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -112,7 +112,7 @@ async fn verify_audit_log_file(
     let merkle_root = merkle_tree.hash.clone();
 
     if verbose {
-        println!("Merkle root: {}", merkle_root);
+        println!("Merkle root: {merkle_root}");
     }
 
     // Verify Merkle root if provided
@@ -137,7 +137,7 @@ async fn verify_audit_log_file(
         println!("  Total entries: {}", entries.len());
         println!("  First entry: {}", entries[0].timestamp);
         println!("  Last entry: {}", entries[entries.len() - 1].timestamp);
-        println!("  Merkle root: {}", merkle_root);
+        println!("  Merkle root: {merkle_root}");
         println!("  Head hash: {}", entries[entries.len() - 1].this_log_hash);
     }
 
@@ -204,7 +204,7 @@ fn check_audit_log_health(
     if verbose {
         println!("\nJob type distribution:");
         for (job_type, count) in job_types {
-            println!("  {}: {}", job_type, count);
+            println!("  {job_type}: {count}");
         }
     }
 

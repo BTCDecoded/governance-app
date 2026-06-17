@@ -122,8 +122,7 @@ impl EquivalenceProofValidator {
 
         let content = fs::read_to_string(config_path).map_err(|e| {
             GovernanceError::ValidationError(format!(
-                "Failed to read test vector config {}: {}",
-                config_path, e
+                "Failed to read test vector config {config_path}: {e}"
             ))
         })?;
 
@@ -144,8 +143,7 @@ impl EquivalenceProofValidator {
 
         let config: TestVectorConfig = serde_yaml::from_str(&content).map_err(|e| {
             GovernanceError::ValidationError(format!(
-                "Failed to parse test vector config {}: {}",
-                config_path, e
+                "Failed to parse test vector config {config_path}: {e}"
             ))
         })?;
 
@@ -344,7 +342,7 @@ impl EquivalenceProofValidator {
         test_id: &str,
     ) -> Result<VerificationResult, GovernanceError> {
         let vector = self.test_vectors.get(test_id).ok_or_else(|| {
-            GovernanceError::ValidationError(format!("Test vector {} not found", test_id))
+            GovernanceError::ValidationError(format!("Test vector {test_id} not found"))
         })?;
 
         info!("Verifying equivalence proof for test: {}", test_id);
@@ -356,7 +354,7 @@ impl EquivalenceProofValidator {
         // 1. Verify proof hash integrity
         let computed_hash = Self::compute_proof_hash(vector);
         if computed_hash != vector.proof_metadata.proof_hash {
-            errors.push(format!("Proof hash mismatch for test {}", test_id));
+            errors.push(format!("Proof hash mismatch for test {test_id}"));
         } else {
             verification_results.push(VerificationStep {
                 step: "Hash integrity".to_string(),
@@ -376,7 +374,7 @@ impl EquivalenceProofValidator {
                     });
                 }
                 Err(e) => {
-                    errors.push(format!("Behavioral equivalence failed: {}", e));
+                    errors.push(format!("Behavioral equivalence failed: {e}"));
                 }
             }
         }
@@ -392,7 +390,7 @@ impl EquivalenceProofValidator {
                     });
                 }
                 Err(e) => {
-                    errors.push(format!("Security equivalence failed: {}", e));
+                    errors.push(format!("Security equivalence failed: {e}"));
                 }
             }
         }
@@ -408,7 +406,7 @@ impl EquivalenceProofValidator {
                     });
                 }
                 Err(e) => {
-                    warnings.push(format!("Performance equivalence warning: {}", e));
+                    warnings.push(format!("Performance equivalence warning: {e}"));
                 }
             }
         }
@@ -491,8 +489,7 @@ impl EquivalenceProofValidator {
                 }
                 Err(e) => {
                     return Err(GovernanceError::ValidationError(format!(
-                        "Security property {} failed: {}",
-                        property, e
+                        "Security property {property} failed: {e}"
                     )));
                 }
             }

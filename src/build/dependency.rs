@@ -108,7 +108,7 @@ impl DependencyGraph {
             if let Some(dependents) = graph.get(&repo) {
                 for dependent in dependents {
                     let degree = in_degree.get_mut(dependent).ok_or_else(|| {
-                        format!("Internal error: missing in-degree for {}", dependent)
+                        format!("Internal error: missing in-degree for {dependent}")
                     })?;
                     *degree -= 1;
                     if *degree == 0 {

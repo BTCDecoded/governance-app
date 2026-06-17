@@ -6,7 +6,6 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use sqlx::SqlitePool;
-use tracing::info;
 
 /// Contribution tracking service
 pub struct ContributionTracker {

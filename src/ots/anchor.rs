@@ -3,7 +3,7 @@
 //! Creates monthly governance registries and anchors them to Bitcoin
 //! using OpenTimestamps for historical proof.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use chrono::{DateTime, Utc};
 use hex;
 use serde::{Deserialize, Serialize};

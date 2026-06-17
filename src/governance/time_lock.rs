@@ -84,7 +84,7 @@ impl<'r> sqlx::FromRow<'r, sqlx::sqlite::SqliteRow> for TimeLockedChange {
             override_signals_json
         {
             serde_json::from_str(&json_str).map_err(|e| {
-                sqlx::Error::Decode(format!("Failed to parse override_signals JSON: {}", e).into())
+                sqlx::Error::Decode(format!("Failed to parse override_signals JSON: {e}").into())
             })?
         } else {
             HashMap::new()
@@ -345,7 +345,7 @@ impl TimeLockManager {
                 WHERE change_id = $4
                 "#,
             )
-            .bind(format!("/{}", node_id))
+            .bind(format!("/{node_id}"))
             .bind(Utc::now().to_rfc3339())
             .bind(Utc::now())
             .bind(change_id)

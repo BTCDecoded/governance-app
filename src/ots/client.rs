@@ -3,7 +3,7 @@
 //! Handles communication with OpenTimestamps calendar servers
 //! for creating and verifying Bitcoin-anchored timestamps.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use reqwest::Client;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;

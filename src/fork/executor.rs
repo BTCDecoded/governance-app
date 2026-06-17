@@ -101,8 +101,7 @@ impl ForkExecutor {
 
         if !path.exists() {
             return Err(GovernanceError::ConfigError(format!(
-                "Governance config path does not exist: {}",
-                config_path
+                "Governance config path does not exist: {config_path}"
             )));
         }
 
@@ -114,7 +113,7 @@ impl ForkExecutor {
         if action_tiers_path.exists() {
             let content = fs::read_to_string(&action_tiers_path)?;
             let action_tiers: serde_json::Value = serde_yaml::from_str(&content).map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to parse action-tiers.yml: {}", e))
+                GovernanceError::ConfigError(format!("Failed to parse action-tiers.yml: {e}"))
             })?;
             config.insert("action_tiers".to_string(), action_tiers);
         }
@@ -197,7 +196,7 @@ impl ForkExecutor {
 
         Ok(Ruleset {
             id: ruleset_id.to_string(),
-            name: format!("Governance Ruleset {}", ruleset_id),
+            name: format!("Governance Ruleset {ruleset_id}"),
             version,
             hash,
             created_at: Utc::now(),
@@ -214,7 +213,7 @@ impl ForkExecutor {
         use sha2::{Digest, Sha256};
 
         let config_str = serde_json::to_string(config).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to serialize config: {}", e))
+            GovernanceError::ConfigError(format!("Failed to serialize config: {e}"))
         })?;
 
         let mut hasher = Sha256::new();
@@ -251,7 +250,7 @@ impl ForkExecutor {
                         let ruleset_id = export.ruleset_id.clone();
                         let ruleset = Ruleset {
                             id: ruleset_id.clone(),
-                            name: format!("Ruleset {}", ruleset_id),
+                            name: format!("Ruleset {ruleset_id}"),
                             version: export.ruleset_version,
                             hash: self.calculate_config_hash(&config)?,
                             created_at: export.created_at,
@@ -314,8 +313,7 @@ impl ForkExecutor {
             .get(target_ruleset_id)
             .ok_or_else(|| {
                 GovernanceError::ConfigError(format!(
-                    "Target ruleset not found: {}",
-                    target_ruleset_id
+                    "Target ruleset not found: {target_ruleset_id}"
                 ))
             })?
             .clone();

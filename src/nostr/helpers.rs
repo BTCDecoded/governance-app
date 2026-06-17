@@ -54,18 +54,18 @@ pub async fn publish_merge_action(
     // Create requirement structs
     let layer_req = LayerRequirement {
         layer: layer as u32,
-        signatures: format!("{}-of-{}", layer_sigs_req, layer_sigs_total),
+        signatures: format!("{layer_sigs_req}-of-{layer_sigs_total}"),
         review_days: layer_review as u32,
     };
 
     let tier_req = TierRequirement {
         tier,
-        signatures: format!("{}-of-{}", tier_sigs_req, tier_sigs_total),
+        signatures: format!("{tier_sigs_req}-of-{tier_sigs_total}"),
         review_days: tier_review as u32,
     };
 
     let combined_req = CombinedRequirement {
-        signatures: format!("{}-of-{}", final_sigs_req, final_sigs_total),
+        signatures: format!("{final_sigs_req}-of-{final_sigs_total}"),
         review_days: final_review_days as u32,
         source: source.clone(),
     };

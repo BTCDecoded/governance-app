@@ -97,14 +97,14 @@ fn sign_pr(
     pr: u64,
     message: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🔐 Signing PR #{} in {}", pr, repo);
+    println!("🔐 Signing PR #{pr} in {repo}");
 
     // Load private key
     let private_key = fs::read_to_string(key_path)?;
 
     // Create message to sign
-    let message = message.unwrap_or_else(|| format!("PR #{} in {}", pr, repo));
-    println!("📝 Message to sign: {}", message);
+    let message = message.unwrap_or_else(|| format!("PR #{pr} in {repo}"));
+    println!("📝 Message to sign: {message}");
 
     // Initialize signature manager
     let signature_manager = SignatureManager::new();
@@ -118,26 +118,26 @@ fn sign_pr(
     println!("✅ Signature generated successfully!");
     println!();
     println!("📋 Copy this command to post on GitHub:");
-    println!("/governance-sign {}", signature);
+    println!("/governance-sign {signature}");
     println!();
     println!("🔍 Signature details:");
-    println!("  Repository: {}", repo);
-    println!("  PR Number: {}", pr);
-    println!("  Message: {}", message);
-    println!("  Signature: {}", signature);
+    println!("  Repository: {repo}");
+    println!("  PR Number: {pr}");
+    println!("  Message: {message}");
+    println!("  Signature: {signature}");
 
     Ok(())
 }
 
 fn generate_keypair(output_dir: &str, username: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🔑 Generating keypair for {}", username);
+    println!("🔑 Generating keypair for {username}");
 
     // Create output directory
     fs::create_dir_all(output_dir)?;
 
     // Generate keypair using openssl
-    let private_key_path = Path::new(output_dir).join(format!("{}_private.pem", username));
-    let public_key_path = Path::new(output_dir).join(format!("{}_public.pem", username));
+    let private_key_path = Path::new(output_dir).join(format!("{username}_private.pem"));
+    let public_key_path = Path::new(output_dir).join(format!("{username}_public.pem"));
 
     // Generate private key
     let output = std::process::Command::new("openssl")
@@ -191,16 +191,13 @@ fn generate_keypair(output_dir: &str, username: &str) -> Result<(), Box<dyn std:
     println!("✅ Keypair generated successfully!");
     println!("📁 Private key: {}", private_key_path.display());
     println!("📁 Public key: {}", public_key_path.display());
-    println!("🔑 Public key (hex): {}", public_key_hex);
+    println!("🔑 Public key (hex): {public_key_hex}");
     println!();
     println!("💾 To add this maintainer to the database:");
     println!(
         "INSERT INTO maintainers (github_username, public_key, layer, active, last_updated) VALUES"
     );
-    println!(
-        "('{}', '{}', 1, true, CURRENT_TIMESTAMP);",
-        username, public_key_hex
-    );
+    println!("('{username}', '{public_key_hex}', 1, true, CURRENT_TIMESTAMP);");
 
     Ok(())
 }
@@ -224,14 +221,14 @@ fn verify_signature(
 
     if is_valid {
         println!("✅ Signature is VALID");
-        println!("📝 Message: {}", message);
-        println!("🔑 Public key: {}", public_key_path);
-        println!("✍️  Signature: {}", signature);
+        println!("📝 Message: {message}");
+        println!("🔑 Public key: {public_key_path}");
+        println!("✍️  Signature: {signature}");
     } else {
         println!("❌ Signature is INVALID");
-        println!("📝 Message: {}", message);
-        println!("🔑 Public key: {}", public_key_path);
-        println!("✍️  Signature: {}", signature);
+        println!("📝 Message: {message}");
+        println!("🔑 Public key: {public_key_path}");
+        println!("✍️  Signature: {signature}");
     }
 
     Ok(())

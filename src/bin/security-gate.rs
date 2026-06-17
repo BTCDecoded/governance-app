@@ -3,7 +3,7 @@
 //! Command-line tool for checking security control status, analyzing PR impact,
 //! and verifying production readiness.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::Path;
@@ -124,13 +124,10 @@ async fn check_status(detailed: bool) -> Result<()> {
     if production_ready {
         println!("✅ Production Ready: YES");
     } else {
-        println!(
-            "❌ Production Ready: NO ({} controls blocking)",
-            blocking_controls
-        );
+        println!("❌ Production Ready: NO ({blocking_controls} controls blocking)");
     }
 
-    println!("📊 Total Controls: {}", total_controls);
+    println!("📊 Total Controls: {total_controls}");
     println!();
 
     // Summary
@@ -139,15 +136,9 @@ async fn check_status(detailed: bool) -> Result<()> {
         let p0_complete = summary["P0_complete"].as_i64().unwrap_or(0);
         let p0_incomplete = summary["P0_incomplete"].as_i64().unwrap_or(0);
 
-        println!(
-            "P0 (Critical) Controls: {}/{} complete",
-            p0_complete, p0_critical
-        );
+        println!("P0 (Critical) Controls: {p0_complete}/{p0_critical} complete");
         if p0_incomplete > 0 {
-            println!(
-                "⚠️  {} P0 controls incomplete - blocks production",
-                p0_incomplete
-            );
+            println!("⚠️  {p0_incomplete} P0 controls incomplete - blocks production");
         }
     }
 
@@ -183,10 +174,7 @@ async fn check_status(detailed: bool) -> Result<()> {
                 let blocking = if blocks_production { " (BLOCKS)" } else { "" };
                 let control_id_str = control_id.as_str().unwrap_or("unknown");
 
-                println!(
-                    "  {} {} {} - {}{}",
-                    state_emoji, priority_emoji, name, control_id_str, blocking
-                );
+                println!("  {state_emoji} {priority_emoji} {name} - {control_id_str}{blocking}");
             }
         }
     }
@@ -226,13 +214,13 @@ async fn check_pr_impact(pr_number: u32, format: &str) -> Result<()> {
     match format {
         "json" => {
             let json = serde_json::to_string_pretty(&impact)?;
-            println!("{}", json);
+            println!("{json}");
 
             // Also write to file for CI
             fs::write("security-impact.json", json)?;
         }
         "text" => {
-            println!("🔍 Security Impact Analysis for PR #{}", pr_number);
+            println!("🔍 Security Impact Analysis for PR #{pr_number}");
             println!("=============================================");
             println!();
 
@@ -270,14 +258,14 @@ async fn check_pr_impact(pr_number: u32, format: &str) -> Result<()> {
 
             if let Some(tier) = &impact.required_tier {
                 println!();
-                println!("🎯 Required Governance Tier: {}", tier);
+                println!("🎯 Required Governance Tier: {tier}");
             }
 
             if !impact.additional_requirements.is_empty() {
                 println!();
                 println!("📝 Additional Requirements:");
                 for req in &impact.additional_requirements {
-                    println!("  - {}", req);
+                    println!("  - {req}");
                 }
             }
 
@@ -360,7 +348,7 @@ async fn verify_production_readiness(format: &str) -> Result<()> {
     match format {
         "json" => {
             let json = serde_json::to_string_pretty(&result)?;
-            println!("{}", json);
+            println!("{json}");
         }
         "text" => {
             if production_ready {
@@ -368,10 +356,7 @@ async fn verify_production_readiness(format: &str) -> Result<()> {
                 println!("🚀 System is ready for production deployment");
             } else {
                 println!("❌ Production Ready: NO");
-                println!(
-                    "⚠️  {} controls blocking production deployment",
-                    blocking_controls
-                );
+                println!("⚠️  {blocking_controls} controls blocking production deployment");
 
                 if let Some(blocking) = status.get("audit_readiness") {
                     if let Some(blockers) = blocking.get("audit_blockers") {
@@ -434,8 +419,7 @@ async fn generate_report(output: Option<String>) -> Result<()> {
         report.push_str("✅ **Production Ready**: YES\n\n");
     } else {
         report.push_str(&format!(
-            "❌ **Production Ready**: NO ({} controls blocking)\n\n",
-            blocking_controls
+            "❌ **Production Ready**: NO ({blocking_controls} controls blocking)\n\n"
         ));
     }
 
@@ -450,8 +434,7 @@ async fn generate_report(output: Option<String>) -> Result<()> {
         let p0_incomplete = summary["P0_incomplete"].as_i64().unwrap_or(0);
 
         report.push_str(&format!(
-            "| P0 (Critical) | {} | {} | {} |\n",
-            p0_total, p0_complete, p0_incomplete
+            "| P0 (Critical) | {p0_total} | {p0_complete} | {p0_incomplete} |\n"
         ));
 
         let p1_total = summary["P1_high"].as_i64().unwrap_or(0);
@@ -459,8 +442,7 @@ async fn generate_report(output: Option<String>) -> Result<()> {
         let p1_incomplete = summary["P1_incomplete"].as_i64().unwrap_or(0);
 
         report.push_str(&format!(
-            "| P1 (High) | {} | {} | {} |\n",
-            p1_total, p1_complete, p1_incomplete
+            "| P1 (High) | {p1_total} | {p1_complete} | {p1_incomplete} |\n"
         ));
     }
 
@@ -491,8 +473,7 @@ async fn generate_report(output: Option<String>) -> Result<()> {
 
             let control_id_str = control_id.as_str().unwrap_or("unknown");
             report.push_str(&format!(
-                "- {} **{}** ({}) - {}{}\n",
-                state_emoji, name, control_id_str, priority, blocking
+                "- {state_emoji} **{name}** ({control_id_str}) - {priority}{blocking}\n"
             ));
         }
     }
@@ -518,10 +499,10 @@ async fn generate_report(output: Option<String>) -> Result<()> {
         Some(path) => {
             let path_clone = path.clone();
             fs::write(&path, report)?;
-            println!("📄 Security report written to: {}", path_clone);
+            println!("📄 Security report written to: {path_clone}");
         }
         None => {
-            println!("{}", report);
+            println!("{report}");
         }
     }
 

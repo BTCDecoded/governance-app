@@ -5,7 +5,6 @@
 use axum::{extract::State, response::Json};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tracing::{error, info};
 
 use crate::config::AppConfig;
 use crate::database::Database;

@@ -2,7 +2,7 @@
 //!
 //! Loads teams configuration and converts to nested multisig format
 
-use crate::config::loader::{TeamConfig, TeamMaintainerConfig, TeamsConfig};
+use crate::config::loader::TeamsConfig;
 use crate::error::GovernanceError;
 use crate::validation::nested_multisig::{Team, TeamMaintainer};
 use std::path::Path;
@@ -16,10 +16,10 @@ pub fn load_teams_for_nested_multisig(config_path: &Path) -> Result<Vec<Team>, G
     }
 
     let content = std::fs::read_to_string(&teams_path)
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read teams.yml: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read teams.yml: {e}")))?;
 
     let teams_config: TeamsConfig = serde_yaml::from_str(&content)
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse teams.yml: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse teams.yml: {e}")))?;
 
     // Convert TeamConfig to Team
     let teams: Vec<Team> = teams_config

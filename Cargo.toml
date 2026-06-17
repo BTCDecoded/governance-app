@@ -1,7 +1,8 @@
 [package]
 name = "blvm-commons"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85"
 authors = ["BTCDecoded Contributors"]
 license = "MIT"
 description = "Bitcoin Commons governance enforcement - GitHub App for cryptographic governance across Bitcoin Commons repositories"
@@ -88,6 +89,10 @@ blvm-sdk = { path = "../blvm-sdk" }
 blvm-protocol = { path = "../blvm-protocol" }
 blvm-consensus = { path = "../blvm-consensus" }
 blvm-node = { path = "../blvm-node" }
+blvm-primitives = { path = "../blvm-primitives" }
+blvm-spec-lock = { path = "../blvm-spec-lock" }
+blvm-secp256k1 = { path = "../blvm-secp256k1" }
+blvm-muhash = { path = "../blvm-muhash" }
 
 [features]
 default = []

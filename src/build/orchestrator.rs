@@ -60,15 +60,16 @@ impl BuildOrchestrator {
         );
 
         // Get build order
-        let build_order = self.dependency_graph.get_build_order().map_err(|e| {
-            GovernanceError::BuildError(format!("Failed to get build order: {}", e))
-        })?;
+        let build_order = self
+            .dependency_graph
+            .get_build_order()
+            .map_err(|e| GovernanceError::BuildError(format!("Failed to get build order: {e}")))?;
 
         info!("Build order: {:?}", build_order);
 
         // Trigger builds in parallel groups (respecting dependencies)
         let parallel_groups = self.dependency_graph.get_parallel_groups().map_err(|e| {
-            GovernanceError::BuildError(format!("Failed to get parallel groups: {}", e))
+            GovernanceError::BuildError(format!("Failed to get parallel groups: {e}"))
         })?;
 
         info!(
@@ -95,8 +96,7 @@ impl BuildOrchestrator {
 
                             if status != BuildStatus::Success {
                                 return Err(GovernanceError::BuildError(format!(
-                                    "Dependency {} failed with status: {:?}",
-                                    dep, status
+                                    "Dependency {dep} failed with status: {status:?}"
                                 )));
                             }
                             completed_repos.insert(dep.clone());
@@ -130,8 +130,7 @@ impl BuildOrchestrator {
             if *status != BuildStatus::Success {
                 error!("Build failed for {}: {:?}", repo, status);
                 return Err(GovernanceError::BuildError(format!(
-                    "Build failed for {}: {:?}",
-                    repo, status
+                    "Build failed for {repo}: {status:?}"
                 )));
             }
         }
@@ -197,8 +196,7 @@ impl BuildOrchestrator {
 
         if triggered_builds.is_empty() {
             return Err(GovernanceError::BuildError(format!(
-                "No successful builds found for release {}",
-                release_version
+                "No successful builds found for release {release_version}"
             )));
         }
 
@@ -314,12 +312,11 @@ impl BuildOrchestrator {
 
         // Build release body with artifact list
         let mut release_body = format!(
-            "Bitcoin Commons Release {}\n\nThis release was orchestrated by blvm-commons.\n\n## Artifacts\n\n",
-            version
+            "Bitcoin Commons Release {version}\n\nThis release was orchestrated by blvm-commons.\n\n## Artifacts\n\n"
         );
 
         for (repo, repo_artifacts) in artifacts {
-            release_body.push_str(&format!("### {}\n\n", repo));
+            release_body.push_str(&format!("### {repo}\n\n"));
             for artifact in repo_artifacts {
                 release_body.push_str(&format!("- {} ({} bytes)\n", artifact.name, artifact.size));
             }
@@ -333,7 +330,7 @@ impl BuildOrchestrator {
             .repos(&self.organization, "blvm")
             .releases()
             .create(version)
-            .name(&format!("Bitcoin Commons {}", version))
+            .name(&format!("Bitcoin Commons {version}"))
             .body(&release_body)
             .prerelease(prerelease)
             .draft(false)
@@ -341,7 +338,7 @@ impl BuildOrchestrator {
             .await
             .map_err(|e| {
                 error!("Failed to create release: {}", e);
-                GovernanceError::GitHubError(format!("Failed to create release: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create release: {e}"))
             })?;
 
         info!(
@@ -461,7 +458,7 @@ impl BuildOrchestrator {
                     // Format: hash  filename
                     // Use repo-prefixed name to match uploaded artifacts
                     let asset_name = format!("{}-{}", repo, artifact.name);
-                    lines.push(format!("{}  {}", hash_hex, asset_name));
+                    lines.push(format!("{hash_hex}  {asset_name}"));
                 }
             }
         }

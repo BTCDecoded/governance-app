@@ -44,7 +44,7 @@ impl StatusCheckGenerator {
                 earliest_merge.format("%Y-%m-%d")
             )
         } else {
-            format!("{}✅ Governance: Review Period Met", prefix)
+            format!("{prefix}✅ Governance: Review Period Met")
         }
     }
 
@@ -76,7 +76,7 @@ impl StatusCheckGenerator {
         let prefix = if dry_run { "[DRY-RUN] " } else { "" };
 
         if current_signatures >= required_signatures {
-            format!("{}✅ Governance: Signatures Complete", prefix)
+            format!("{prefix}✅ Governance: Signatures Complete")
         } else {
             let base_status = ThresholdValidator::format_threshold_status(
                 current_signatures,
@@ -85,7 +85,7 @@ impl StatusCheckGenerator {
                 signers,
                 pending,
             );
-            format!("{}{}", prefix, base_status)
+            format!("{prefix}{base_status}")
         }
     }
 
@@ -99,8 +99,7 @@ impl StatusCheckGenerator {
             "✅ Governance: All Requirements Met - Ready to Merge".to_string()
         } else {
             format!(
-                "❌ Governance: Requirements Not Met\n\n{}\n\n{}",
-                review_period_status, signature_status
+                "❌ Governance: Requirements Not Met\n\n{review_period_status}\n\n{signature_status}"
             )
         }
     }
@@ -123,16 +122,13 @@ impl StatusCheckGenerator {
             _ => "❓",
         };
 
-        let mut status = format!("{} Tier {}: {}\n", tier_emoji, tier, tier_name);
+        let mut status = format!("{tier_emoji} Tier {tier}: {tier_name}\n");
 
         if review_period_met && signatures_met {
             status.push_str("✅ Governance: All Requirements Met - Ready to Merge");
         } else {
             status.push_str("❌ Governance: Requirements Not Met\n");
-            status.push_str(&format!(
-                "\n{}\n\n{}",
-                review_period_status, signature_status
-            ));
+            status.push_str(&format!("\n{review_period_status}\n\n{signature_status}"));
         }
 
         status

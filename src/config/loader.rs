@@ -167,8 +167,7 @@ impl GovernanceConfigFiles {
     ) -> Result<T, GovernanceError> {
         if !path.exists() {
             return Err(GovernanceError::ConfigError(format!(
-                "Configuration file not found: {:?}",
-                path
+                "Configuration file not found: {path:?}"
             )));
         }
         Self::load_yaml(path)
@@ -188,17 +187,15 @@ impl GovernanceConfigFiles {
     fn load_yaml<T: for<'de> Deserialize<'de>>(path: PathBuf) -> Result<T, GovernanceError> {
         if !path.exists() {
             return Err(GovernanceError::ConfigError(format!(
-                "Configuration file not found: {:?}",
-                path
+                "Configuration file not found: {path:?}"
             )));
         }
 
-        let contents = fs::read_to_string(&path).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read {:?}: {}", path, e))
-        })?;
+        let contents = fs::read_to_string(&path)
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to read {path:?}: {e}")))?;
 
         serde_yaml::from_str(&contents)
-            .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse {:?}: {}", path, e)))
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse {path:?}: {e}")))
     }
 
     /// Validate the loaded configuration
@@ -268,8 +265,7 @@ impl GovernanceConfigFiles {
 
             if layer_config.repositories.is_empty() {
                 return Err(GovernanceError::ConfigError(format!(
-                    "Layer {}: no repositories defined",
-                    layer_name
+                    "Layer {layer_name}: no repositories defined"
                 )));
             }
         }
@@ -311,7 +307,7 @@ impl GovernanceConfigFiles {
 
     /// Get tier configuration by tier number
     pub fn get_tier_config(&self, tier: u32) -> Option<&TierConfig> {
-        let tier_name = format!("tier_{}", tier);
+        let tier_name = format!("tier_{tier}");
         self.action_tiers.tiers.get(&tier_name)
     }
 

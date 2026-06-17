@@ -2,7 +2,7 @@
 //!
 //! Provides public utilities for verifying OTS proofs and registries.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sha2::Digest;
 use std::fs;
 use tracing::{debug, info};

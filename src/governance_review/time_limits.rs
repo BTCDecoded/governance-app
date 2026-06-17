@@ -7,7 +7,7 @@
 //! - Extensions require approval
 
 use crate::governance_review::case::GovernanceReviewCaseManager;
-use crate::governance_review::models::{policy, TimeLimit};
+use crate::governance_review::models::policy;
 use chrono::{DateTime, Duration, Utc};
 use sqlx::{Row, SqlitePool};
 

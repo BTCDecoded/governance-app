@@ -75,14 +75,14 @@ impl MergeBlocker {
     ) -> Result<(), GovernanceError> {
         let state = if should_block { "failure" } else { "success" };
         let description = if should_block {
-            format!("❌ Merge blocked: {}", reason)
+            format!("❌ Merge blocked: {reason}")
         } else {
             "✅ Governance requirements met - merge allowed".to_string()
         };
 
         // Add dry-run prefix if in dry-run mode
         let final_description = if self.decision_logger.dry_run_mode {
-            format!("[DRY-RUN] {}", description)
+            format!("[DRY-RUN] {description}")
         } else {
             description
         };

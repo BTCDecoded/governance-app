@@ -5,8 +5,8 @@
 //! - Optional neutral mediator
 //! - Conflict resolution before escalation
 
-use crate::governance_review::models::{policy, Mediation};
-use chrono::{DateTime, Duration, Utc};
+use crate::governance_review::models::{Mediation, policy};
+use chrono::{Duration, Utc};
 use sqlx::{Row, SqlitePool};
 
 pub struct MediationManager {
@@ -107,7 +107,7 @@ impl MediationManager {
             WHERE id = ?
             "#,
         )
-        .bind(format!("Mediation successful: {}", resolution_notes))
+        .bind(format!("Mediation successful: {resolution_notes}"))
         .bind(Utc::now())
         .bind(mediation.case_id)
         .execute(&self.pool)

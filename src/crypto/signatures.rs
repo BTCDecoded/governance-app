@@ -1,9 +1,9 @@
 use crate::error::GovernanceError;
 use blvm_sdk::governance::{
-    signatures::sign_message, verify_signature, GovernanceKeypair,
-    PublicKey as GovernancePublicKey, Signature as GovernanceSignature,
+    GovernanceKeypair, PublicKey as GovernancePublicKey, Signature as GovernanceSignature,
+    signatures::sign_message, verify_signature,
 };
-use secp256k1::{ecdsa::Signature, PublicKey, Secp256k1, SecretKey};
+use secp256k1::{PublicKey, Secp256k1, SecretKey, ecdsa::Signature};
 use sha2::{Digest, Sha256};
 
 pub struct SignatureManager {
@@ -24,7 +24,7 @@ impl SignatureManager {
     ) -> Result<Signature, GovernanceError> {
         let message_hash = Sha256::digest(message.as_bytes());
         let message_hash = secp256k1::Message::from_digest_slice(&message_hash)
-            .map_err(|e| GovernanceError::CryptoError(format!("Invalid message hash: {}", e)))?;
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid message hash: {e}")))?;
 
         Ok(self.secp.sign_ecdsa(&message_hash, secret_key))
     }
@@ -37,7 +37,7 @@ impl SignatureManager {
     ) -> Result<bool, GovernanceError> {
         let message_hash = Sha256::digest(message.as_bytes());
         let message_hash = secp256k1::Message::from_digest_slice(&message_hash)
-            .map_err(|e| GovernanceError::CryptoError(format!("Invalid message hash: {}", e)))?;
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid message hash: {e}")))?;
 
         match self.secp.verify_ecdsa(&message_hash, signature, public_key) {
             Ok(_) => Ok(true),
@@ -54,21 +54,19 @@ impl SignatureManager {
     ) -> Result<bool, GovernanceError> {
         // Parse signature from hex string
         let signature_bytes = hex::decode(signature)
-            .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature hex: {}", e)))?;
-        let signature = GovernanceSignature::from_bytes(&signature_bytes).map_err(|e| {
-            GovernanceError::CryptoError(format!("Invalid signature format: {}", e))
-        })?;
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature hex: {e}")))?;
+        let signature = GovernanceSignature::from_bytes(&signature_bytes)
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid signature format: {e}")))?;
 
         // Parse public key from hex string
         let public_key_bytes = hex::decode(public_key)
-            .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key hex: {}", e)))?;
-        let public_key = GovernancePublicKey::from_bytes(&public_key_bytes).map_err(|e| {
-            GovernanceError::CryptoError(format!("Invalid public key format: {}", e))
-        })?;
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key hex: {e}")))?;
+        let public_key = GovernancePublicKey::from_bytes(&public_key_bytes)
+            .map_err(|e| GovernanceError::CryptoError(format!("Invalid public key format: {e}")))?;
 
         // Use blvm-sdk's verify_signature function
         verify_signature(&signature, message.as_bytes(), &public_key).map_err(|e| {
-            GovernanceError::CryptoError(format!("Signature verification failed: {}", e))
+            GovernanceError::CryptoError(format!("Signature verification failed: {e}"))
         })
     }
 
@@ -79,9 +77,8 @@ impl SignatureManager {
         keypair: &GovernanceKeypair,
     ) -> Result<String, GovernanceError> {
         // Use blvm-sdk's sign_message function
-        let signature = sign_message(&keypair.secret_key, message.as_bytes()).map_err(|e| {
-            GovernanceError::CryptoError(format!("Signature creation failed: {}", e))
-        })?;
+        let signature = sign_message(&keypair.secret_key, message.as_bytes())
+            .map_err(|e| GovernanceError::CryptoError(format!("Signature creation failed: {e}")))?;
 
         Ok(signature.to_string())
     }
@@ -93,7 +90,7 @@ impl SignatureManager {
     /// Generate a new governance keypair (`blvm-sdk` raw scalar + compressed pubkey bytes).
     pub fn generate_keypair(&self) -> Result<GovernanceKeypair, GovernanceError> {
         GovernanceKeypair::generate().map_err(|e| {
-            GovernanceError::CryptoError(format!("Governance key generation failed: {}", e))
+            GovernanceError::CryptoError(format!("Governance key generation failed: {e}"))
         })
     }
 }
@@ -259,12 +256,16 @@ mod tests {
         // ECDSA signatures are non-deterministic (uses random nonce), so they should be different
         // But both should verify
         let public_key = PublicKey::from_secret_key(&manager.secp, &secret_key);
-        assert!(manager
-            .verify_signature(message, &signature1, &public_key)
-            .unwrap());
-        assert!(manager
-            .verify_signature(message, &signature2, &public_key)
-            .unwrap());
+        assert!(
+            manager
+                .verify_signature(message, &signature1, &public_key)
+                .unwrap()
+        );
+        assert!(
+            manager
+                .verify_signature(message, &signature2, &public_key)
+                .unwrap()
+        );
     }
 
     #[test]

@@ -5,10 +5,9 @@
 //! - Time limits (180 days for resolution)
 //! - Response periods (30 days for subject)
 
-use crate::governance_review::models::{policy, GovernanceReviewCase};
+use crate::governance_review::models::{GovernanceReviewCase, policy};
 use chrono::{DateTime, Duration, Utc};
 use sqlx::{Row, SqlitePool};
-use uuid::Uuid;
 
 pub struct GovernanceReviewCaseManager {
     pool: SqlitePool,
@@ -67,7 +66,7 @@ impl GovernanceReviewCaseManager {
         .bind(reporter_maintainer_id)
         .bind(case_type)
         .bind(severity)
-        .bind(&description)
+        .bind(description)
         .bind(&evidence_json)
         .bind(on_platform)
         .bind(response_deadline)
@@ -120,7 +119,7 @@ impl GovernanceReviewCaseManager {
             // Generate case number: GR-YYYY-MMDD-NNNN
             // Use timestamp + attempts to reduce collision chance
             let suffix = (now.timestamp() % 10000) as u32 + attempts;
-            let case_number = format!("GR-{}-{:04}", base_format, suffix);
+            let case_number = format!("GR-{base_format}-{suffix:04}");
 
             // Check if case number already exists
             let exists: Option<i32> =
@@ -139,7 +138,7 @@ impl GovernanceReviewCaseManager {
                 use uuid::Uuid;
                 let uuid_str = Uuid::new_v4().to_string();
                 let uuid_part = uuid_str.replace("-", "")[..8].to_string();
-                return Ok(format!("GR-{}-{}", base_format, uuid_part));
+                return Ok(format!("GR-{base_format}-{uuid_part}"));
             }
         }
     }

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT state, COUNT(*) as \"count: i64\"\n            FROM reviews\n            WHERE submitted_at >= ? AND submitted_at <= ?\n            GROUP BY state\n            ORDER BY 2 DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "state",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "count: i64",
+        "ordinal": 1,
+        "type_info": "Null"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "54d29ca3b333afffbe07e88fb9982bcc49726ce5430d457a3021ef34bb25479c"
+}

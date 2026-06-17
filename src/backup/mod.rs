@@ -56,11 +56,11 @@ impl BackupManager {
         fs::create_dir_all(&self.config.directory)
             .await
             .map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to create backup directory: {}", e))
+                GovernanceError::ConfigError(format!("Failed to create backup directory: {e}"))
             })?;
 
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S_%3f"); // Include milliseconds for uniqueness
-        let backup_filename = format!("governance_backup_{}.db", timestamp);
+        let backup_filename = format!("governance_backup_{timestamp}.db");
         let backup_path = self.config.directory.join(&backup_filename);
 
         info!("Creating database backup: {}", backup_path.display());
@@ -125,10 +125,7 @@ impl BackupManager {
             // Ensure parent directory exists
             if let Some(parent) = absolute_path.parent() {
                 fs::create_dir_all(parent).await.map_err(|e| {
-                    GovernanceError::ConfigError(format!(
-                        "Failed to create backup directory: {}",
-                        e
-                    ))
+                    GovernanceError::ConfigError(format!("Failed to create backup directory: {e}"))
                 })?;
             }
 
@@ -140,7 +137,7 @@ impl BackupManager {
                 .replace("\\", "\\\\");
 
             // Use sqlx to execute VACUUM INTO
-            sqlx::query(&format!("VACUUM INTO '{}'", escaped_path))
+            sqlx::query(&format!("VACUUM INTO '{escaped_path}'"))
                 .execute(pool)
                 .await
                 .map_err(|e| {
@@ -186,14 +183,14 @@ impl BackupManager {
         // Ensure parent directory exists
         if let Some(parent) = absolute_path.parent() {
             fs::create_dir_all(parent).await.map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to create backup directory: {}", e))
+                GovernanceError::ConfigError(format!("Failed to create backup directory: {e}"))
             })?;
         }
 
         // Create an empty backup database file first to ensure it exists
         // SQLite will create the file on connect, but we want to ensure the directory is writable
         fs::File::create(&absolute_path).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to create backup file: {}", e))
+            GovernanceError::ConfigError(format!("Failed to create backup file: {e}"))
         })?;
 
         // Create backup database file first by connecting to it briefly
@@ -213,7 +210,7 @@ impl BackupManager {
 
         // Use a single connection from the source pool for the entire backup operation
         let mut source_conn = pool.acquire().await.map_err(|e| {
-            GovernanceError::DatabaseError(format!("Failed to acquire source connection: {}", e))
+            GovernanceError::DatabaseError(format!("Failed to acquire source connection: {e}"))
         })?;
 
         // Run migrations on backup database to create schema
@@ -221,7 +218,7 @@ impl BackupManager {
             .run(&backup_pool)
             .await
             .map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to migrate backup database: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to migrate backup database: {e}"))
             })?;
 
         // Close backup pool before attaching (SQLite doesn't allow attaching an open database)
@@ -232,11 +229,11 @@ impl BackupManager {
             .to_string_lossy()
             .replace("'", "''")
             .replace("\\", "/");
-        sqlx::query(&format!("ATTACH DATABASE '{}' AS backup", escaped_path))
+        sqlx::query(&format!("ATTACH DATABASE '{escaped_path}' AS backup"))
             .execute(&mut *source_conn)
             .await
             .map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to attach backup database: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to attach backup database: {e}"))
             })?;
 
         // Get all table names from main (in-memory) database
@@ -245,7 +242,7 @@ impl BackupManager {
         )
         .fetch_all(&mut *source_conn)
         .await
-        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get table names: {}", e)))?;
+        .map_err(|e| GovernanceError::DatabaseError(format!("Failed to get table names: {e}")))?;
 
         // Copy each table to backup database
         for (table_name,) in tables {
@@ -253,21 +250,19 @@ impl BackupManager {
 
             // Drop existing table in backup (from migrations) and recreate with data
             // CREATE TABLE AS SELECT doesn't work with IF NOT EXISTS, so we drop first
-            let _ = sqlx::query(&format!("DROP TABLE IF EXISTS backup.{}", quoted_table))
+            let _ = sqlx::query(&format!("DROP TABLE IF EXISTS backup.{quoted_table}"))
                 .execute(&mut *source_conn)
                 .await;
 
             // Create table and copy data in one operation
             sqlx::query(&format!(
-                "CREATE TABLE backup.{} AS SELECT * FROM main.{}",
-                quoted_table, quoted_table
+                "CREATE TABLE backup.{quoted_table} AS SELECT * FROM main.{quoted_table}"
             ))
             .execute(&mut *source_conn)
             .await
             .map_err(|e| {
                 GovernanceError::DatabaseError(format!(
-                    "Failed to create and copy table {} in backup: {}",
-                    table_name, e
+                    "Failed to create and copy table {table_name} in backup: {e}"
                 ))
             })?;
         }
@@ -277,7 +272,7 @@ impl BackupManager {
             .execute(&mut *source_conn)
             .await
             .map_err(|e| {
-                GovernanceError::DatabaseError(format!("Failed to detach backup database: {}", e))
+                GovernanceError::DatabaseError(format!("Failed to detach backup database: {e}"))
             })?;
 
         // Verify the backup file was created
@@ -323,7 +318,7 @@ impl BackupManager {
                 .fetch_one(&backup_pool)
                 .await
                 .map_err(|e| {
-                    GovernanceError::DatabaseError(format!("Backup verification failed: {}", e))
+                    GovernanceError::DatabaseError(format!("Backup verification failed: {e}"))
                 })?;
 
             if result.0 != "ok" {
@@ -354,9 +349,7 @@ impl BackupManager {
             .arg("-f") // Force overwrite
             .arg(backup_path)
             .output()
-            .map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to compress backup: {}", e))
-            })?;
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to compress backup: {e}")))?;
 
         if !output.status.success() {
             return Err(GovernanceError::ConfigError(format!(
@@ -381,17 +374,17 @@ impl BackupManager {
 
         // List all backup files
         let mut entries = fs::read_dir(&self.config.directory).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read backup directory: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read backup directory: {e}"))
         })?;
 
         while let Some(entry) = entries.next_entry().await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read directory entry: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read directory entry: {e}"))
         })? {
             let path = entry.path();
             if path.is_file() && path.to_string_lossy().contains("governance_backup_") {
                 // Get file metadata
                 let metadata = entry.metadata().await.map_err(|e| {
-                    GovernanceError::ConfigError(format!("Failed to read file metadata: {}", e))
+                    GovernanceError::ConfigError(format!("Failed to read file metadata: {e}"))
                 })?;
 
                 // Get modification time
@@ -400,8 +393,7 @@ impl BackupManager {
                     if modified_time < cutoff_time {
                         fs::remove_file(&path).await.map_err(|e| {
                             GovernanceError::ConfigError(format!(
-                                "Failed to delete old backup: {}",
-                                e
+                                "Failed to delete old backup: {e}"
                             ))
                         })?;
                         deleted_count += 1;

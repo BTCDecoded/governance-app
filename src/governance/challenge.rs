@@ -41,8 +41,7 @@ impl ChallengeTarget {
             "maintainer_action" | "action" => Ok(ChallengeTarget::MaintainerAction),
             "insufficient_review" | "review" => Ok(ChallengeTarget::InsufficientReview),
             _ => Err(GovernanceError::ValidationError(format!(
-                "Invalid challenge target: {}",
-                s
+                "Invalid challenge target: {s}"
             ))),
         }
     }
@@ -145,7 +144,7 @@ impl ChallengeManager {
         // Generate challenge ID: challenge-<timestamp>-<random>
         let timestamp = Utc::now().timestamp();
         let random_suffix = rand::random::<u32>();
-        let challenge_id = format!("challenge-{}-{:08x}", timestamp, random_suffix);
+        let challenge_id = format!("challenge-{timestamp}-{random_suffix:08x}");
         let target_type_str = target_type.to_string();
         let now = Utc::now();
 

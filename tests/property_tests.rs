@@ -119,8 +119,8 @@ proptest! {
 }
 
 use blvm_commons::crypto::signatures::SignatureManager;
-use rand::rngs::StdRng;
 use rand::SeedableRng;
+use rand::rngs::StdRng;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 
 proptest! {

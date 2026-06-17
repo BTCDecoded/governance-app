@@ -3,7 +3,7 @@
 //! Publishes governance action events (merges, releases, etc.) to Nostr
 //! with full layer + tier information and signature details.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use chrono::Utc;
 use nostr_sdk::prelude::*;
 use tracing::info;
@@ -64,7 +64,7 @@ impl GovernanceActionPublisher {
         let action_event = GovernanceActionEvent {
             description: description.to_string(),
             pr_url: pr_number
-                .map(|n| format!("https://github.com/BTCDecoded/{}/pull/{}", repository, n)),
+                .map(|n| format!("https://github.com/BTCDecoded/{repository}/pull/{n}")),
             layer_requirement: layer_req,
             tier_requirement: tier_req,
             combined_requirement: combined_req.clone(),

@@ -6,8 +6,8 @@
 //! - New evidence can be submitted
 
 use crate::governance_review::case::GovernanceReviewCaseManager;
-use crate::governance_review::models::{policy, Appeal};
-use chrono::{DateTime, Duration, Utc};
+use crate::governance_review::models::{Appeal, policy};
+use chrono::{Duration, Utc};
 use sqlx::{Row, SqlitePool};
 
 pub struct AppealManager {
@@ -140,7 +140,7 @@ impl AppealManager {
                 WHERE id = ?
                 "#,
             )
-            .bind(format!("Appeal granted: {}", review_decision))
+            .bind(format!("Appeal granted: {review_decision}"))
             .bind(appeal.case_id)
             .execute(&self.pool)
             .await?;

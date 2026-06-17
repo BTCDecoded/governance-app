@@ -1,10 +1,10 @@
 //! Node Registry API endpoints
 
 use axum::{
+    Router,
     extract::State,
     response::Json,
     routing::{get, post},
-    Router,
 };
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
@@ -80,7 +80,7 @@ pub async fn register_node(
             warn!("Failed to register node {}: {}", request.node_id, e);
             Json(RegisterNodeResponse {
                 success: false,
-                message: format!("Failed to register node: {}", e),
+                message: format!("Failed to register node: {e}"),
             })
         }
     }

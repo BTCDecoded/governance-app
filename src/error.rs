@@ -2,37 +2,37 @@ use thiserror::Error;
 
 impl From<serde_json::Error> for GovernanceError {
     fn from(err: serde_json::Error) -> Self {
-        Self::CryptoError(format!("JSON serialization error: {}", err))
+        Self::CryptoError(format!("JSON serialization error: {err}"))
     }
 }
 
 impl From<sqlx::Error> for GovernanceError {
     fn from(err: sqlx::Error) -> Self {
-        Self::DatabaseError(format!("Database error: {}", err))
+        Self::DatabaseError(format!("Database error: {err}"))
     }
 }
 
 impl From<octocrab::Error> for GovernanceError {
     fn from(err: octocrab::Error) -> Self {
-        Self::GitHubError(format!("GitHub API error: {}", err))
+        Self::GitHubError(format!("GitHub API error: {err}"))
     }
 }
 
 impl From<reqwest::Error> for GovernanceError {
     fn from(err: reqwest::Error) -> Self {
-        Self::GitHubError(format!("HTTP error: {}", err))
+        Self::GitHubError(format!("HTTP error: {err}"))
     }
 }
 
 impl From<std::io::Error> for GovernanceError {
     fn from(err: std::io::Error) -> Self {
-        Self::ConfigError(format!("IO error: {}", err))
+        Self::ConfigError(format!("IO error: {err}"))
     }
 }
 
 impl From<anyhow::Error> for GovernanceError {
     fn from(err: anyhow::Error) -> Self {
-        Self::ConfigError(format!("Error: {}", err))
+        Self::ConfigError(format!("Error: {err}"))
     }
 }
 
@@ -76,22 +76,19 @@ pub type GovernanceAppError = GovernanceError;
 impl GovernanceError {
     pub fn invalid_emergency_tier(tier: i32) -> Self {
         Self::ValidationError(format!(
-            "Invalid emergency tier: {}. Must be 1, 2, or 3",
-            tier
+            "Invalid emergency tier: {tier}. Must be 1, 2, or 3"
         ))
     }
 
     pub fn insufficient_evidence(length: usize) -> Self {
         Self::ValidationError(format!(
-            "Insufficient evidence: {} characters (minimum 100 required)",
-            length
+            "Insufficient evidence: {length} characters (minimum 100 required)"
         ))
     }
 
     pub fn insufficient_signatures(required: usize, found: usize, threshold: String) -> Self {
         Self::ValidationError(format!(
-            "Insufficient signatures: found {}, required {} (threshold: {})",
-            found, required, threshold
+            "Insufficient signatures: found {found}, required {required} (threshold: {threshold})"
         ))
     }
 
@@ -100,18 +97,17 @@ impl GovernanceError {
     }
 
     pub fn extension_not_allowed(tier: String) -> Self {
-        Self::ValidationError(format!("Extensions not allowed for tier: {}", tier))
+        Self::ValidationError(format!("Extensions not allowed for tier: {tier}"))
     }
 
     pub fn max_extensions_reached(current: u32, max: u32) -> Self {
         Self::ValidationError(format!(
-            "Maximum extensions reached: {} of {} used",
-            current, max
+            "Maximum extensions reached: {current} of {max} used"
         ))
     }
 
     pub fn emergency_expired(id: i32) -> Self {
-        Self::ValidationError(format!("Emergency tier {} has expired", id))
+        Self::ValidationError(format!("Emergency tier {id} has expired"))
     }
 }
 

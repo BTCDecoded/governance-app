@@ -4,7 +4,7 @@
 //! required governance tier. This embeds security controls directly into the governance
 //! system, making it self-enforcing.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{debug, info};
@@ -515,14 +515,14 @@ impl SecurityControlValidator {
 
         // Required tier
         if let Some(tier) = &impact.required_tier {
-            comment.push_str(&format!("\n### Required Governance Tier: **{}**\n\n", tier));
+            comment.push_str(&format!("\n### Required Governance Tier: **{tier}**\n\n"));
         }
 
         // Additional requirements
         if !impact.additional_requirements.is_empty() {
             comment.push_str("### Additional Requirements\n\n");
             for req in &impact.additional_requirements {
-                comment.push_str(&format!("- {}\n", req));
+                comment.push_str(&format!("- {req}\n"));
             }
         }
 
@@ -561,19 +561,25 @@ mod tests {
         let validator = create_test_validator();
 
         // Test exact match
-        assert!(validator
-            .matches_pattern("blvm-protocol/src/lib.rs", "blvm-protocol/src/lib.rs")
-            .unwrap());
+        assert!(
+            validator
+                .matches_pattern("blvm-protocol/src/lib.rs", "blvm-protocol/src/lib.rs")
+                .unwrap()
+        );
 
         // Test wildcard match
-        assert!(validator
-            .matches_pattern("blvm-protocol/src/lib.rs", "blvm-protocol/**/*.rs")
-            .unwrap());
+        assert!(
+            validator
+                .matches_pattern("blvm-protocol/src/lib.rs", "blvm-protocol/**/*.rs")
+                .unwrap()
+        );
 
         // Test no match
-        assert!(!validator
-            .matches_pattern("other/file.rs", "blvm-protocol/**/*.rs")
-            .unwrap());
+        assert!(
+            !validator
+                .matches_pattern("other/file.rs", "blvm-protocol/**/*.rs")
+                .unwrap()
+        );
     }
 
     #[test]

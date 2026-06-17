@@ -94,20 +94,20 @@ pub async fn load_config_from_file<P: AsRef<Path>>(
 ) -> Result<TierClassificationConfig, GovernanceError> {
     let content = tokio::fs::read_to_string(path)
         .await
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read config file: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read config file: {e}")))?;
 
     let config: TierClassificationConfig = serde_yaml::from_str(&content)
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse YAML config: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse YAML config: {e}")))?;
 
     Ok(config)
 }
 
 /// Load tier classification config using the governance config loader
 async fn load_tier_classification_config() -> Result<TierClassificationConfig, GovernanceError> {
-    let governance_config =
-        GovernanceConfigFiles::load_from_directory(Path::new("governance/config")).map_err(
-            |e| GovernanceError::ConfigError(format!("Failed to load governance config: {}", e)),
-        )?;
+    let governance_config = GovernanceConfigFiles::load_from_directory(Path::new(
+        "governance/config",
+    ))
+    .map_err(|e| GovernanceError::ConfigError(format!("Failed to load governance config: {e}")))?;
 
     // Convert from the governance config format to our internal format
     let mut classification_rules = HashMap::new();
@@ -313,7 +313,7 @@ pub async fn classify_pr_tier_detailed(
             for file in &files {
                 if matches_pattern(file, pattern) {
                     confidence += config.confidence_scoring.file_pattern_match;
-                    tier_patterns.push(format!("{}:{}", pattern, file));
+                    tier_patterns.push(format!("{pattern}:{file}"));
                 }
             }
         }
@@ -342,13 +342,13 @@ pub async fn classify_pr_tier_detailed(
                     * config.confidence_scoring.title_analysis
                     * keyword_weight_multiplier
                     * 2.0; // Additional boost for title matches
-                tier_keywords.push(format!("title:{}", keyword));
+                tier_keywords.push(format!("title:{keyword}"));
             }
             if body_match {
                 confidence += config.confidence_scoring.keyword_match
                     * config.confidence_scoring.description_analysis
                     * keyword_weight_multiplier;
-                tier_keywords.push(format!("body:{}", keyword));
+                tier_keywords.push(format!("body:{keyword}"));
             }
         }
 
@@ -667,9 +667,9 @@ fn matches_pattern(file: &str, pattern: &str) -> bool {
                 .strip_suffix("/**")
                 .unwrap_or(pattern);
             // Match if file path contains /pattern/
-            return file.contains(&format!("/{}/", pattern_clean))
-                || file.ends_with(&format!("/{}", pattern_clean))
-                || file.starts_with(&format!("{}/", pattern_clean));
+            return file.contains(&format!("/{pattern_clean}/"))
+                || file.ends_with(&format!("/{pattern_clean}"))
+                || file.starts_with(&format!("{pattern_clean}/"));
         }
 
         let parts: Vec<&str> = pattern.split("**").collect();
@@ -681,8 +681,7 @@ fn matches_pattern(file: &str, pattern: &str) -> bool {
             if prefix.is_empty() && suffix.starts_with('/') {
                 // For **/pattern, match if file path ends with pattern or contains /pattern
                 let suffix_clean = &suffix[1..];
-                return file.ends_with(suffix_clean)
-                    || file.contains(&format!("/{}", suffix_clean));
+                return file.ends_with(suffix_clean) || file.contains(&format!("/{suffix_clean}"));
             }
 
             // Handle **/pattern case (match anywhere in path, no leading /)

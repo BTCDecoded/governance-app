@@ -2,7 +2,6 @@
 //!
 //! Handles posting status checks and updating merge status based on governance requirements
 
-use chrono::Utc;
 use serde_json::Value;
 use tracing::{info, warn};
 
@@ -133,9 +132,8 @@ impl GitHubIntegration {
     ) -> Result<(), GovernanceError> {
         let status_message = format!(
             "🔍 Governance: Analyzing PR\n\
-            Tier {}: {}\n\
-            Review period and signature requirements will be checked...",
-            tier, tier_name
+            Tier {tier}: {tier_name}\n\
+            Review period and signature requirements will be checked..."
         );
 
         self.github_client

@@ -162,7 +162,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(key_metadata) = key_manager.get_key_metadata(&key_id).await? {
                 print_key_details(&key_metadata);
             } else {
-                println!("Key not found: {}", key_id);
+                println!("Key not found: {key_id}");
             }
         }
 
@@ -172,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .await?;
 
             println!("Key rotated successfully:");
-            println!("  Old Key ID: {}", key_id);
+            println!("  Old Key ID: {key_id}");
             println!("  New Key ID: {}", new_key.key_id);
             println!("  Owner: {}", new_key.owner);
             println!("  Expires: {}", new_key.expires_at);
@@ -180,7 +180,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::Revoke { key_id, reason } => {
             key_manager.revoke_key(&key_id, &reason).await?;
-            println!("Key revoked successfully: {}", key_id);
+            println!("Key revoked successfully: {key_id}");
         }
 
         Commands::CheckRotation => {
@@ -238,10 +238,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            println!(
-                "\nRotation complete: {} succeeded, {} failed",
-                success_count, error_count
-            );
+            println!("\nRotation complete: {success_count} succeeded, {error_count} failed");
         }
 
         Commands::Stats => {
@@ -256,7 +253,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::UpdateUsage { key_id } => {
             key_manager.update_key_usage(&key_id).await?;
-            println!("Key usage updated: {}", key_id);
+            println!("Key usage updated: {key_id}");
         }
     }
 
@@ -269,7 +266,7 @@ fn parse_key_type(s: &str) -> Result<KeyType, String> {
         "emergency" => Ok(KeyType::Emergency),
         "github_app" => Ok(KeyType::GitHubApp),
         "system" => Ok(KeyType::System),
-        _ => Err(format!("Invalid key type: {}", s)),
+        _ => Err(format!("Invalid key type: {s}")),
     }
 }
 
@@ -280,7 +277,7 @@ fn parse_key_status(s: &str) -> Result<KeyStatus, String> {
         "revoked" => Ok(KeyStatus::Revoked),
         "expired" => Ok(KeyStatus::Expired),
         "compromised" => Ok(KeyStatus::Compromised),
-        _ => Err(format!("Invalid key status: {}", s)),
+        _ => Err(format!("Invalid key status: {s}")),
     }
 }
 
@@ -290,7 +287,7 @@ fn parse_metadata(metadata: Vec<String>) -> Result<HashMap<String, String>, Stri
     for item in metadata {
         let parts: Vec<&str> = item.splitn(2, '=').collect();
         if parts.len() != 2 {
-            return Err(format!("Invalid metadata format: {}", item));
+            return Err(format!("Invalid metadata format: {item}"));
         }
         map.insert(parts[0].to_string(), parts[1].to_string());
     }
@@ -342,7 +339,7 @@ fn print_key_details(key: &blvm_commons::crypto::key_management::KeyMetadata) {
     if !key.metadata.is_empty() {
         println!("  Metadata:");
         for (k, v) in &key.metadata {
-            println!("    {}: {}", k, v);
+            println!("    {k}: {v}");
         }
     }
 }

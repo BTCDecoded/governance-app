@@ -74,12 +74,11 @@ pub fn verify_audit_log_file(file_path: &str) -> Result<bool, GovernanceError> {
     use serde_json;
     use std::fs;
 
-    let content = fs::read_to_string(file_path).map_err(|e| {
-        GovernanceError::ConfigError(format!("Failed to read audit log file: {}", e))
-    })?;
+    let content = fs::read_to_string(file_path)
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read audit log file: {e}")))?;
 
     let entries: Vec<AuditLogEntry> = serde_json::from_str(&content)
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse audit log: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse audit log: {e}")))?;
 
     verify_hash_chain(&entries)
 }
@@ -89,12 +88,11 @@ pub fn load_audit_log_from_file(file_path: &str) -> Result<Vec<AuditLogEntry>, G
     use serde_json;
     use std::fs;
 
-    let content = fs::read_to_string(file_path).map_err(|e| {
-        GovernanceError::ConfigError(format!("Failed to read audit log file: {}", e))
-    })?;
+    let content = fs::read_to_string(file_path)
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to read audit log file: {e}")))?;
 
     let entries: Vec<AuditLogEntry> = serde_json::from_str(&content)
-        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse audit log: {}", e)))?;
+        .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse audit log: {e}")))?;
 
     Ok(entries)
 }

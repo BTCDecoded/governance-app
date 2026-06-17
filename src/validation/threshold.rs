@@ -12,8 +12,7 @@ impl ThresholdValidator {
             Ok(true)
         } else {
             Err(GovernanceError::ThresholdError(format!(
-                "Signature threshold not met. Required: {}/{} signatures, Current: {}/{}",
-                required_signatures, total_maintainers, current_signatures, total_maintainers
+                "Signature threshold not met. Required: {required_signatures}/{total_maintainers} signatures, Current: {current_signatures}/{total_maintainers}"
             )))
         }
     }
@@ -74,8 +73,7 @@ impl ThresholdValidator {
             Ok(true)
         } else {
             Err(GovernanceError::ThresholdError(format!(
-                "Signature threshold not met. Required: {}/{} signatures, Current: {}/{}",
-                required_signatures, total_maintainers, current_signatures, total_maintainers
+                "Signature threshold not met. Required: {required_signatures}/{total_maintainers} signatures, Current: {current_signatures}/{total_maintainers}"
             )))
         }
     }
@@ -129,11 +127,11 @@ impl ThresholdValidator {
         let tier_review = Self::get_tier_review_period(tier);
 
         if layer_sigs_req >= tier_sigs_req && layer_review >= tier_review {
-            format!("Layer {} requirements", layer)
+            format!("Layer {layer} requirements")
         } else if tier_sigs_req >= layer_sigs_req && tier_review >= layer_review {
-            format!("Tier {} requirements", tier)
+            format!("Tier {tier} requirements")
         } else {
-            format!("Combined Layer {} + Tier {} requirements", layer, tier)
+            format!("Combined Layer {layer} + Tier {tier} requirements")
         }
     }
 }

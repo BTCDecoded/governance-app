@@ -19,26 +19,26 @@ pub struct GitHubClient {
 impl GitHubClient {
     pub fn new(app_id: u64, private_key_path: &str) -> Result<Self, GovernanceError> {
         let key = std::fs::read_to_string(private_key_path).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read private key: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read private key: {e}"))
         })?;
 
         let client = Octocrab::builder()
             .app(
                 app_id.into(),
                 jsonwebtoken::EncodingKey::from_rsa_pem(key.as_bytes()).map_err(|e| {
-                    GovernanceError::GitHubError(format!("Failed to parse private key: {}", e))
+                    GovernanceError::GitHubError(format!("Failed to parse private key: {e}"))
                 })?,
             )
             .build()
             .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to create GitHub client: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create GitHub client: {e}"))
             })?;
 
         let http_client = ReqwestClient::builder()
             .user_agent("blvm-commons/0.1.0")
             .build()
             .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to create HTTP client: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create HTTP client: {e}"))
             })?;
 
         let circuit_breaker = Arc::new(crate::resilience::CircuitBreaker::with_config(
@@ -73,14 +73,14 @@ impl GitHubClient {
             .personal_token(token)
             .build()
             .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to create GitHub client: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create GitHub client: {e}"))
             })?;
 
         let http_client = ReqwestClient::builder()
             .user_agent("blvm-commons/0.1.0")
             .build()
             .map_err(|e| {
-                GovernanceError::GitHubError(format!("Failed to create HTTP client: {}", e))
+                GovernanceError::GitHubError(format!("Failed to create HTTP client: {e}"))
             })?;
 
         let circuit_breaker = Arc::new(crate::resilience::CircuitBreaker::with_config(
@@ -114,8 +114,7 @@ impl GitHubClient {
         // Input validation
         if owner.is_empty() || repo.is_empty() || sha.is_empty() {
             return Err(GovernanceError::GitHubError(format!(
-                "Invalid input: owner, repo, and sha must be non-empty (owner={}, repo={}, sha={})",
-                owner, repo, sha
+                "Invalid input: owner, repo, and sha must be non-empty (owner={owner}, repo={repo}, sha={sha})"
             )));
         }
 
@@ -159,8 +158,7 @@ impl GitHubClient {
                     .map_err(|e| {
                         error!("Failed to post status check for {}/{}@{}: {}", owner, repo, sha, e);
                         GovernanceError::GitHubError(format!(
-                            "Failed to post status check for {}/{}@{}: {}. Check repository permissions and SHA validity.",
-                            owner, repo, sha, e
+                            "Failed to post status check for {owner}/{repo}@{sha}: {e}. Check repository permissions and SHA validity."
                         ))
                     })
             })
@@ -221,7 +219,7 @@ impl GitHubClient {
 
         builder.send().await.map_err(|e| {
             error!("Failed to update status check: {}", e);
-            GovernanceError::GitHubError(format!("Failed to update status check: {}", e))
+            GovernanceError::GitHubError(format!("Failed to update status check: {e}"))
         })?;
 
         info!(
@@ -252,7 +250,7 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to post issue comment: {}", e);
-                GovernanceError::GitHubError(format!("Failed to post issue comment: {}", e))
+                GovernanceError::GitHubError(format!("Failed to post issue comment: {e}"))
             })?;
 
         info!(
@@ -271,8 +269,7 @@ impl GitHubClient {
         // Input validation
         if owner.is_empty() || repo.is_empty() {
             return Err(GovernanceError::GitHubError(format!(
-                "Invalid input: owner and repo must be non-empty (owner={}, repo={})",
-                owner, repo
+                "Invalid input: owner and repo must be non-empty (owner={owner}, repo={repo})"
             )));
         }
 
@@ -281,8 +278,7 @@ impl GitHubClient {
         let repository = self.client.repos(owner, repo).get().await.map_err(|e| {
             error!("Failed to get repository info for {}/{}: {}", owner, repo, e);
             GovernanceError::GitHubError(format!(
-                "Failed to get repository info for {}/{}: {}. Check repository name and permissions.",
-                owner, repo, e
+                "Failed to get repository info for {owner}/{repo}: {e}. Check repository name and permissions."
             ))
         })?;
 
@@ -321,15 +317,13 @@ impl GitHubClient {
         // Input validation
         if owner.is_empty() || repo.is_empty() {
             return Err(GovernanceError::GitHubError(format!(
-                "Invalid input: owner and repo must be non-empty (owner={}, repo={})",
-                owner, repo
+                "Invalid input: owner and repo must be non-empty (owner={owner}, repo={repo})"
             )));
         }
 
         if pr_number == 0 {
             return Err(GovernanceError::GitHubError(format!(
-                "Invalid PR number: {} (must be > 0)",
-                pr_number
+                "Invalid PR number: {pr_number} (must be > 0)"
             )));
         }
 
@@ -346,8 +340,7 @@ impl GitHubClient {
             .map_err(|e| {
                 error!("Failed to get pull request {}/{}#{}: {}", owner, repo, pr_number, e);
                 GovernanceError::GitHubError(format!(
-                    "Failed to get pull request {}/{}#{}: {}. Check repository permissions and PR number.",
-                    owner, repo, pr_number, e
+                    "Failed to get pull request {owner}/{repo}#{pr_number}: {e}. Check repository permissions and PR number."
                 ))
             })?;
 
@@ -414,10 +407,8 @@ impl GitHubClient {
 
         // octocrab 0.38 API - branch protection API structure may have changed
         // Use direct HTTP call via reqwest client for reliability
-        let url = format!(
-            "https://api.github.com/repos/{}/{}/branches/{}/protection",
-            owner, repo, branch
-        );
+        let url =
+            format!("https://api.github.com/repos/{owner}/{repo}/branches/{branch}/protection");
 
         // Get authentication token from octocrab client
         // Note: For app-based auth, we need to get an installation token first
@@ -432,7 +423,7 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to update branch protection: {}", e);
-                GovernanceError::GitHubError(format!("Failed to update branch protection: {}", e))
+                GovernanceError::GitHubError(format!("Failed to update branch protection: {e}"))
             })?;
 
         // Check response status
@@ -474,7 +465,7 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to get pull request for merge check: {}", e);
-                GovernanceError::GitHubError(format!("Failed to get pull request: {}", e))
+                GovernanceError::GitHubError(format!("Failed to get pull request: {e}"))
             })?;
 
         // Check if PR is mergeable
@@ -507,12 +498,12 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to get check runs: {}", e);
-                GovernanceError::GitHubError(format!("Failed to get check runs: {}", e))
+                GovernanceError::GitHubError(format!("Failed to get check runs: {e}"))
             })?;
 
         let mut results = Vec::new();
         for run in check_runs.check_runs {
-            let conclusion_str = run.conclusion.as_ref().map(|c| format!("{:?}", c));
+            let conclusion_str = run.conclusion.as_ref().map(|c| format!("{c:?}"));
             let status_str = conclusion_str.as_deref().unwrap_or("unknown").to_string();
             results.push(CheckRun {
                 name: run.name,
@@ -578,7 +569,7 @@ impl GitHubClient {
         );
 
         // octocrab 0.38 API - check if workflow file exists using repos().get_content()
-        let path = format!(".github/workflows/{}", workflow_file);
+        let path = format!(".github/workflows/{workflow_file}");
         match self
             .client
             .repos(owner, repo)
@@ -622,12 +613,12 @@ impl GitHubClient {
 
         // octocrab 0.38 API - repository dispatch may need direct HTTP call
         // Try using octocrab's method first, fallback to HTTP if needed
-        let url = format!("https://api.github.com/repos/{}/{}/dispatches", owner, repo);
+        let url = format!("https://api.github.com/repos/{owner}/{repo}/dispatches");
 
         // octocrab 0.38: Repository dispatch not directly available via octocrab
         // Use HTTP client with authentication for now
         // In production, this should use installation tokens for app-based auth
-        let url = format!("https://api.github.com/repos/{}/{}/dispatches", owner, repo);
+        let url = format!("https://api.github.com/repos/{owner}/{repo}/dispatches");
 
         let payload = json!({
             "event_type": event_type,
@@ -640,7 +631,9 @@ impl GitHubClient {
             "Repository dispatch requested for {}/{} (event: {})",
             owner, repo, event_type
         );
-        warn!("Repository dispatch requires installation token - not implemented yet. Workflow may not trigger.");
+        warn!(
+            "Repository dispatch requires installation token - not implemented yet. Workflow may not trigger."
+        );
 
         // Try to find the workflow run ID (non-blocking)
         match self
@@ -702,7 +695,7 @@ impl GitHubClient {
         repo: &str,
         _event_type: &str,
     ) -> Result<u64, GovernanceError> {
-        use tokio::time::{sleep, Duration};
+        use tokio::time::{Duration, sleep};
 
         // Wait a moment for the workflow to start
         sleep(Duration::from_secs(2)).await;
@@ -774,7 +767,7 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to list installations: {}", e);
-                GovernanceError::GitHubError(format!("Failed to list installations: {}", e))
+                GovernanceError::GitHubError(format!("Failed to list installations: {e}"))
             })?;
 
         // Find installation for this organization
@@ -799,8 +792,7 @@ impl GitHubClient {
             .or_else(|| installations_vec.first())
             .ok_or_else(|| {
                 GovernanceError::GitHubError(format!(
-                    "No installation found for organization: {}",
-                    org
+                    "No installation found for organization: {org}"
                 ))
             })?;
 
@@ -826,13 +818,13 @@ impl GitHubClient {
         let response = self
             .http_client
             .get(download_url)
-            .header("Authorization", format!("Bearer {}", token))
+            .header("Authorization", format!("Bearer {token}"))
             .header("Accept", "application/vnd.github+json")
             .send()
             .await
             .map_err(|e| {
                 error!("Failed to download artifact: {}", e);
-                GovernanceError::GitHubError(format!("Failed to download artifact: {}", e))
+                GovernanceError::GitHubError(format!("Failed to download artifact: {e}"))
             })?;
 
         if !response.status().is_success() {
@@ -840,14 +832,13 @@ impl GitHubClient {
             let text = response.text().await.unwrap_or_default();
             error!("Failed to download artifact: {} - {}", status, text);
             return Err(GovernanceError::GitHubError(format!(
-                "Failed to download artifact: {} - {}",
-                status, text
+                "Failed to download artifact: {status} - {text}"
             )));
         }
 
         let bytes = response.bytes().await.map_err(|e| {
             error!("Failed to read artifact bytes: {}", e);
-            GovernanceError::GitHubError(format!("Failed to read artifact bytes: {}", e))
+            GovernanceError::GitHubError(format!("Failed to read artifact bytes: {e}"))
         })?;
 
         info!("Downloaded artifact: {} bytes", bytes.len());
@@ -879,14 +870,13 @@ impl GitHubClient {
 
         // GitHub requires uploading to uploads.github.com with specific format
         let url = format!(
-            "https://uploads.github.com/repos/{}/{}/releases/{}/assets?name={}",
-            owner, repo, release_id, asset_name
+            "https://uploads.github.com/repos/{owner}/{repo}/releases/{release_id}/assets?name={asset_name}"
         );
 
         let response = self
             .http_client
             .post(&url)
-            .header("Authorization", format!("Bearer {}", token))
+            .header("Authorization", format!("Bearer {token}"))
             .header("Accept", "application/vnd.github+json")
             .header("Content-Type", content_type)
             .body(asset_data.to_vec())
@@ -894,7 +884,7 @@ impl GitHubClient {
             .await
             .map_err(|e| {
                 error!("Failed to upload asset: {}", e);
-                GovernanceError::GitHubError(format!("Failed to upload asset: {}", e))
+                GovernanceError::GitHubError(format!("Failed to upload asset: {e}"))
             })?;
 
         if !response.status().is_success() {
@@ -902,8 +892,7 @@ impl GitHubClient {
             let text = response.text().await.unwrap_or_default();
             error!("Failed to upload asset: {} - {}", status, text);
             return Err(GovernanceError::GitHubError(format!(
-                "Failed to upload asset: {} - {}",
-                status, text
+                "Failed to upload asset: {status} - {text}"
             )));
         }
 

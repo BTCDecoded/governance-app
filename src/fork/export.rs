@@ -76,13 +76,13 @@ impl GovernanceExporter {
         output_path: &str,
     ) -> Result<(), GovernanceError> {
         let yaml_content = serde_yaml::to_string(export).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to serialize export: {}", e))
+            GovernanceError::ConfigError(format!("Failed to serialize export: {e}"))
         })?;
 
         tokio::fs::write(output_path, yaml_content)
             .await
             .map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to write export file: {}", e))
+                GovernanceError::ConfigError(format!("Failed to write export file: {e}"))
             })?;
 
         Ok(())
@@ -91,11 +91,11 @@ impl GovernanceExporter {
     /// Load export from file
     pub async fn load_export(&self, file_path: &str) -> Result<GovernanceExport, GovernanceError> {
         let content = tokio::fs::read_to_string(file_path).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read export file: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read export file: {e}"))
         })?;
 
         let export: GovernanceExport = serde_yaml::from_str(&content)
-            .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse export: {}", e)))?;
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to parse export: {e}")))?;
 
         Ok(export)
     }
@@ -125,12 +125,12 @@ impl GovernanceExporter {
             return Ok(serde_json::json!({}));
         }
 
-        let content = tokio::fs::read_to_string(&file_path).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read {}: {}", filename, e))
-        })?;
+        let content = tokio::fs::read_to_string(&file_path)
+            .await
+            .map_err(|e| GovernanceError::ConfigError(format!("Failed to read {filename}: {e}")))?;
 
         let yaml_value: Value = serde_yaml::from_str(&content).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to parse {}: {}", filename, e))
+            GovernanceError::ConfigError(format!("Failed to parse {filename}: {e}"))
         })?;
 
         Ok(yaml_value)
@@ -148,11 +148,11 @@ impl GovernanceExporter {
 
         // Load all maintainer files
         let mut entries = tokio::fs::read_dir(&maintainers_path).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read maintainers directory: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read maintainers directory: {e}"))
         })?;
 
         while let Some(entry) = entries.next_entry().await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read directory entry: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read directory entry: {e}"))
         })? {
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("yml") {
@@ -162,11 +162,11 @@ impl GovernanceExporter {
                     .unwrap_or("unknown");
 
                 let content = tokio::fs::read_to_string(&path).await.map_err(|e| {
-                    GovernanceError::ConfigError(format!("Failed to read {}: {}", filename, e))
+                    GovernanceError::ConfigError(format!("Failed to read {filename}: {e}"))
                 })?;
 
                 let yaml_value: Value = serde_yaml::from_str(&content).map_err(|e| {
-                    GovernanceError::ConfigError(format!("Failed to parse {}: {}", filename, e))
+                    GovernanceError::ConfigError(format!("Failed to parse {filename}: {e}"))
                 })?;
 
                 maintainers.insert(filename.to_string(), yaml_value);
@@ -188,11 +188,11 @@ impl GovernanceExporter {
 
         // Load all repository files
         let mut entries = tokio::fs::read_dir(&repos_path).await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read repos directory: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read repos directory: {e}"))
         })?;
 
         while let Some(entry) = entries.next_entry().await.map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to read directory entry: {}", e))
+            GovernanceError::ConfigError(format!("Failed to read directory entry: {e}"))
         })? {
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("yml") {
@@ -202,11 +202,11 @@ impl GovernanceExporter {
                     .unwrap_or("unknown");
 
                 let content = tokio::fs::read_to_string(&path).await.map_err(|e| {
-                    GovernanceError::ConfigError(format!("Failed to read {}: {}", filename, e))
+                    GovernanceError::ConfigError(format!("Failed to read {filename}: {e}"))
                 })?;
 
                 let yaml_value: Value = serde_yaml::from_str(&content).map_err(|e| {
-                    GovernanceError::ConfigError(format!("Failed to parse {}: {}", filename, e))
+                    GovernanceError::ConfigError(format!("Failed to parse {filename}: {e}"))
                 })?;
 
                 repositories.insert(filename.to_string(), yaml_value);
@@ -219,7 +219,7 @@ impl GovernanceExporter {
     /// Calculate cryptographic hash of configuration
     fn calculate_config_hash(&self, config: &Value) -> Result<String, GovernanceError> {
         let config_string = serde_json::to_string(config).map_err(|e| {
-            GovernanceError::ConfigError(format!("Failed to serialize config: {}", e))
+            GovernanceError::ConfigError(format!("Failed to serialize config: {e}"))
         })?;
 
         let mut hasher = Sha256::new();
@@ -252,7 +252,7 @@ impl GovernanceExporter {
         let export_dir = self.get_export_directory();
         if !export_dir.exists() {
             tokio::fs::create_dir_all(&export_dir).await.map_err(|e| {
-                GovernanceError::ConfigError(format!("Failed to create export directory: {}", e))
+                GovernanceError::ConfigError(format!("Failed to create export directory: {e}"))
             })?;
         }
 

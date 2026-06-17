@@ -6,7 +6,7 @@
 //! - Privacy for reporters
 
 use crate::governance_review::models::{FalseReport, Retaliation};
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use sqlx::{Row, SqlitePool};
 
 pub struct ProtectionManager {

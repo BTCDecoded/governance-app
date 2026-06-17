@@ -5,9 +5,8 @@
 //! - Deactivates maintainer key
 //! - Handles emergency removal
 
-use crate::database::queries::Queries;
 use crate::governance_review::models::policy;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use sqlx::{Row, SqlitePool};
 
 pub struct RemovalManager {

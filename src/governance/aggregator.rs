@@ -6,7 +6,6 @@
 
 use crate::governance::{ContributionTracker, WeightCalculator};
 use anyhow::Result;
-use chrono::Utc;
 use sqlx::SqlitePool;
 use tracing::info;
 
@@ -60,7 +59,9 @@ impl ContributionAggregator {
             .update_participation_weights()
             .await?;
 
-        info!("Completed participation weight update (all weights are 0.0 - maintainer-only governance)");
+        info!(
+            "Completed participation weight update (all weights are 0.0 - maintainer-only governance)"
+        );
         Ok(())
     }
 

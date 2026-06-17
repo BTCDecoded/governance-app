@@ -3,7 +3,7 @@
 //! Defines the structure for tamper-evident audit log entries
 //! with cryptographic hash chains.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -84,7 +84,7 @@ impl AuditLogEntry {
         let mut items: Vec<String> = self
             .metadata
             .iter()
-            .map(|(k, v)| format!("{}:{}", k, v))
+            .map(|(k, v)| format!("{k}:{v}"))
             .collect();
         items.sort(); // Ensure deterministic ordering
         items.join(",")
@@ -168,7 +168,7 @@ where
 
     // Hash outputs (serialize result to bytes)
     let outputs_bytes =
-        serde_json::to_vec(&result).unwrap_or_else(|_| format!("{:?}", result).into_bytes());
+        serde_json::to_vec(&result).unwrap_or_else(|_| format!("{result:?}").into_bytes());
     let mut hasher = Sha256::new();
     hasher.update(&outputs_bytes);
     let outputs_hash = format!("sha256:{}", hex::encode(hasher.finalize()));

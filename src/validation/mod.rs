@@ -13,11 +13,6 @@ pub mod tier_classification;
 pub mod verification_check;
 pub mod version_pinning;
 
-pub use nested_multisig::{
-    NestedMultisigResult, NestedMultisigVerifier, Team, TeamApprovalStatus, TeamMaintainer,
-};
-pub use teams_loader::load_teams_for_nested_multisig;
-
 use serde::{Deserialize, Serialize};
 
 /// Result of validation checks

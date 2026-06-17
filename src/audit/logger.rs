@@ -3,7 +3,7 @@
 //! Manages append-only audit log files with cryptographic hash chains
 //! for tamper-evident logging of governance operations.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
@@ -67,8 +67,7 @@ impl AuditLogger {
 
         // Write to file
         if let Some(file) = self.file.lock().await.as_mut() {
-            writeln!(file, "{}", json)
-                .map_err(|e| anyhow!("Failed to write to audit log: {}", e))?;
+            writeln!(file, "{json}").map_err(|e| anyhow!("Failed to write to audit log: {}", e))?;
             file.flush()
                 .map_err(|e| anyhow!("Failed to flush audit log: {}", e))?;
         } else {

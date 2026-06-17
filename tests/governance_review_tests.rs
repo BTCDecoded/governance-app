@@ -1,9 +1,8 @@
 //! Tests for governance review system
 
 use blvm_commons::governance_review::{
-    get_database_url, get_github_token, get_governance_repo, is_github_actions, AppealManager,
-    GovernanceReviewCaseManager, MediationManager, RemovalManager, SanctionManager,
-    TimeLimitManager,
+    AppealManager, GovernanceReviewCaseManager, MediationManager, RemovalManager, SanctionManager,
+    TimeLimitManager, get_database_url, get_github_token, get_governance_repo, is_github_actions,
 };
 use chrono::{Duration, Utc};
 use sqlx::SqlitePool;

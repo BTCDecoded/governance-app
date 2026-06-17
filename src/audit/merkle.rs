@@ -3,7 +3,7 @@
 //! Implements Merkle tree construction and verification for audit log entries
 //! to enable efficient anchoring of large audit logs to Bitcoin.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
 use tracing::{debug, info};
@@ -195,10 +195,10 @@ pub fn verify_merkle_proof(proof: &MerkleProof, leaf_hash: &str, root_hash: &str
 
         let combined = if is_left {
             // Current hash is on left: (current_hash, proof_hash)
-            format!("{}{}", current_hash, proof_hash)
+            format!("{current_hash}{proof_hash}")
         } else {
             // Current hash is on right: (proof_hash, current_hash)
-            format!("{}{}", proof_hash, current_hash)
+            format!("{proof_hash}{current_hash}")
         };
 
         let mut hasher = Sha256::new();
